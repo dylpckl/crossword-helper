@@ -185,6 +185,26 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .peek .pos { font-style: italic; color: var(--ink-3); margin: 0 5px 0 8px; }
+
+/*
+ * Open and close animate by transitioning a grid row from 0fr to 1fr, so the
+ * browser measures the content and no height is ever hardcoded. Both states
+ * stay in the DOM; the closed one is clipped to nothing.
+ */
+.meaning .peekwrap, .meaning .bodywrap { display: grid; transition: grid-template-rows .28s ease, opacity .2s ease; }
+.meaning .peekwrap > .inner, .meaning .bodywrap > .inner { overflow: hidden; min-height: 0; }
+.meaning .bodywrap > .inner { display: flex; flex-direction: column; gap: 18px; }
+.meaning .peekwrap { grid-template-rows: 1fr; opacity: 1; }
+.meaning .bodywrap { grid-template-rows: 0fr; opacity: 0; }
+.meaning.open .peekwrap { grid-template-rows: 0fr; opacity: 0; }
+.meaning.open .bodywrap { grid-template-rows: 1fr; opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .meaning .peekwrap, .meaning .bodywrap { transition: none; }
+}
+
+/* Answer rows carry a view-transition-name, so filtering tweens rather than jumps. */
+::view-transition-group(*) { animation-duration: .26s; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .2s; }
 .more { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--blue); font-size: 14px; padding: 12px 0 4px; border-top: 1px solid var(--rule-2); }
 .pill { margin-left: auto; font-size: 10px; letter-spacing: .06em; padding: 3px 7px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2); text-transform: uppercase; }
 .muted { color: var(--ink-3); font-size: 14px; padding: 6px 0; }

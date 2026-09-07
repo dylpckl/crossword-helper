@@ -1,9 +1,9 @@
 import type { SolveResult, SolveRequest } from '../contract';
 import { parsePattern } from '../pattern';
 import { renderAnswers, skeletonAnswers } from '../render/answers';
-import { renderDefinition, skeletonDefinition } from '../render/definition';
 import { renderHistory } from '../render/history';
-import { renderReference, skeletonReference } from '../render/reference';
+import { renderLinks } from '../render/links';
+import { renderMeaning, skeletonMeaning } from '../render/meaning';
 import { esc } from '../render/util';
 import { rankAnswers } from '../rank';
 import { buildRequest, isBuildError, solve } from '../solve';
@@ -53,7 +53,19 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   const $ = <T extends HTMLElement>(id: string) => view.querySelector<T>(`#${id}`)!;
   const q = $<HTMLInputElement>('q'), p = $<HTMLInputElement>('p'), out = $('out'), form = $<HTMLFormElement>('form');
   const phint = $('phint'), formError = $('formError'), clearBtn = $('clear'), pclear = $<HTMLButtonElement>('pclear');
-  const sections = { answers: '', meaning: '', about: '' };
+  const sections = { meaning: '', answers: '', links: '' };
+
+  /**
+   * Wrap a re-render so the browser tweens between the old and new lists.
+   * View Transitions do the work; where they're missing, or motion is not
+   * wanted, the change simply applies at once.
+   */
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  function withTransition(fn: () => void) {
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+    if (reduceMotion.matches || !doc.startViewTransition) { fn(); return; }
+    doc.startViewTransition(fn);
+  }
 
   let ctl: AbortController | null = null;
   let current: SolveResult | null = null;
@@ -79,22 +91,47 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   }
 
   function paint() {
-    out.innerHTML = sections.meaning + sections.answers + sections.about;
+    out.innerHTML = sections.meaning + sections.answers + sections.links;
+  }
+  /** Swap one section in place, so the others keep their DOM and their state. */
+  function paintAnswers() {
+    const el = out.querySelector('#sec-answers');
+    if (el) el.outerHTML = sections.answers;
+    else paint();
   }
   /** Re-render every section from `current`. */
   function repaintAll() {
     if (!current) return;
     const r = current, req = r.request;
-    const datamuseErr = r.errors.find((e) => e.provider === 'Datamuse');
-    sections.meaning = renderDefinition(r.definition, req.query, r.errors, { open: meaningOpen });
+    renderSections();
+    paint();
+  }
+  function renderSections() {
+    if (!current) return;
+    const r = current, req = r.request;
+    sections.meaning = renderMeaning(r.definition, r.reference, req.query, r.errors, { open: meaningOpen });
     sections.answers = renderAnswers(r.answers, req, {
       fromCache: r.fromCache,
-      error: datamuseErr,
+      error: r.errors.find((e) => e.provider === 'Datamuse'),
       compact: meaningOpen && !expanded,
       lengthFilter,
     });
-    sections.about = renderReference(r.reference, r.links, req.query, r.errors);
-    paint();
+    sections.links = renderLinks(r.links);
+  }
+
+  /**
+   * Toggling only flips a class, so the CSS height transition can run. The
+   * answers change too — an open definition means the word is the point, so
+   * the list stays short — and that swap gets its own transition.
+   */
+  function toggleMeaning() {
+    meaningOpen = !meaningOpen;
+    const sec = out.querySelector('#sec-meaning');
+    sec?.classList.toggle('open', meaningOpen);
+    sec?.querySelector('.disclosure')?.setAttribute('aria-expanded', String(meaningOpen));
+    sec?.querySelector('.peek')?.setAttribute('tabindex', meaningOpen ? '-1' : '0');
+    renderSections();
+    withTransition(paintAnswers);
   }
 
   function applySettings() {
@@ -151,22 +188,35 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     expanded = false;
     lengthFilter = null;
     current = null;
+    sections.meaning = skeletonMeaning();
     sections.answers = skeletonAnswers();
-    sections.meaning = skeletonDefinition();
-    sections.about = skeletonReference();
+    sections.links = renderLinks(buildLinks(req.query, false));
     meaningOpen = guessOpen(req.query, undefined);
     paint();
+
+    // The two halves of Meaning land separately; keep both and redraw the pair.
+    let liveDef: Parameters<typeof renderMeaning>[0] = null;
+    let liveRef: Parameters<typeof renderMeaning>[1] = null;
+    const paintMeaning = () => {
+      sections.meaning = renderMeaning(liveDef, liveRef, req.query, [], { open: meaningOpen });
+      paint();
+    };
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const result = await solve(req, mine.signal, {
       answers: (a) => { if (mine.signal.aborted) return; sections.answers = renderAnswers(a, req); paint(); },
       definition: (d) => {
         if (mine.signal.aborted) return;
+        liveDef = d;
         meaningOpen = guessOpen(req.query, d);
-        sections.meaning = renderDefinition(d, req.query, [], { open: meaningOpen });
-        paint();
+        paintMeaning();
       },
-      reference: (r) => { if (mine.signal.aborted) return; sections.about = renderReference(r, buildLinks(req.query, r !== null), req.query); paint(); },
+      reference: (r) => {
+        if (mine.signal.aborted) return;
+        liveRef = r;
+        sections.links = renderLinks(buildLinks(req.query, r !== null));
+        paintMeaning();
+      },
       done: (r) => {
         if (mine.signal.aborted) return;
         current = r;
@@ -217,13 +267,19 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       );
       return;
     }
-    if (t.closest('[data-toggle-meaning]')) { meaningOpen = !meaningOpen; repaintAll(); return; }
-    if (t.closest('[data-expand-answers]')) { expanded = true; repaintAll(); return; }
+    if (t.closest('[data-toggle-meaning]')) { toggleMeaning(); return; }
+    if (t.closest('[data-expand-answers]')) {
+      expanded = true;
+      renderSections();
+      withTransition(paintAnswers);
+      return;
+    }
     const len = t.closest<HTMLElement>('[data-len]');
     if (len) {
       const n = Number(len.dataset.len);
       lengthFilter = n === 0 || lengthFilter === n ? null : n;
-      repaintAll();
+      renderSections();
+      withTransition(paintAnswers);
       return;
     }
     const play = t.closest<HTMLElement>('[data-audio]');

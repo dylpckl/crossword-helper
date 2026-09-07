@@ -89,7 +89,7 @@ function row(a: Answer, req: SolveRequest): string {
     })
     .join('');
   const pos = a.partOfSpeech?.[0];
-  return `<button class="row${a.fitsPattern === false ? ' dim' : ''}" data-answer="${a.answer}" data-display="${esc(a.display)}"
+  return `<button class="row${a.fitsPattern === false ? ' dim' : ''}" style="view-transition-name:a-${a.answer}" data-answer="${a.answer}" data-display="${esc(a.display)}"
       aria-label="${esc(a.display)}, ${a.length} letters. Tap to copy, hold to look up.">
     <span class="tiles${a.length >= 9 ? ' long' : ''}">${tiles}<span class="len">${a.length}</span></span>
     ${a.gloss ? `<span class="gloss">${pos ? `<span class="pos">${esc(pos)}.</span>` : ''}${esc(a.gloss)}</span>` : ''}

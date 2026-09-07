@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Answer } from '../../src/contract';
 import { lengthCounts, renderAnswers } from '../../src/render/answers';
-import { renderDefinition } from '../../src/render/definition';
+import { renderMeaning } from '../../src/render/meaning';
 
 const make = (display: string, score = 1): Answer => {
   const answer = display.toUpperCase().replace(/[^A-Z]/g, '');
@@ -55,6 +55,13 @@ describe('length chips', () => {
 });
 
 describe('meaning disclosure', () => {
+  const REF = {
+    title: 'Tide',
+    extract: 'Tides are the rise and fall of sea levels.',
+    url: 'https://en.m.wikipedia.org/wiki/Tide',
+    kind: 'standard' as const,
+    source: 'wikipedia' as const,
+  };
   const DEF = {
     term: 'tide',
     phonetic: '/taɪd/',
@@ -65,25 +72,33 @@ describe('meaning disclosure', () => {
     source: 'dictionaryapi' as const,
   };
 
-  it('shows the full card when open', () => {
-    const html = renderDefinition(DEF, 'tide', [], { open: true });
+  it('carries both sources in one disclosure', () => {
+    const html = renderMeaning(DEF, REF, 'tide', [], { open: true });
     expect(html).toContain('aria-expanded="true"');
-    expect(html).toContain('class="card"');
+    expect(html).toContain('class="section meaning open"');
     expect(html).toContain('The periodic rise and fall of the sea.');
-    expect(html).not.toContain('class="peek"');
+    expect(html).toContain('Tides are the rise and fall of sea levels.');
+    expect(html).toContain('Free Dictionary API');
+    expect(html).toContain('Wikipedia');
   });
 
-  it('collapses to one tappable line carrying the first sense', () => {
-    const html = renderDefinition(DEF, 'tide', [], { open: false });
+  it('keeps both states in the DOM so the height can animate', () => {
+    const html = renderMeaning(DEF, REF, 'tide', [], { open: false });
     expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain('class="section meaning open"');
+    // Collapsed, but present: CSS transitions the grid row, not display.
     expect(html).toContain('class="peek"');
     expect(html).toContain('The periodic rise and fall of the sea.');
-    expect(html).not.toContain('A powerful surge of feeling.');
-    expect(html).not.toContain('class="card"');
   });
 
-  it('offers no control when there is nothing to disclose', () => {
-    const html = renderDefinition(null, 'out of the country');
+  it('peeks the summary when only Wikipedia has anything', () => {
+    const html = renderMeaning(null, REF, 'big apple', [], { open: false });
+    expect(html).toContain('data-toggle-meaning');
+    expect(html).toContain('Tides are the rise and fall of sea levels.');
+  });
+
+  it('offers no control when neither source has anything', () => {
+    const html = renderMeaning(null, null, 'out of the country');
     expect(html).not.toContain('data-toggle-meaning');
     expect(html).toContain('No dictionary entry');
   });
