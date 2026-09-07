@@ -1,9 +1,6 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-
-const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 // Short commit hash of the build: from the CI runner, else from git, else 'dev'.
 function commitHash(): string {
@@ -21,7 +18,7 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
-  define: { __APP_VERSION__: JSON.stringify(pkg.version), __APP_COMMIT__: JSON.stringify(commitHash()) },
+  define: { __APP_COMMIT__: JSON.stringify(commitHash()) },
   build: { target: 'es2022', sourcemap: true },
   test: { environment: 'jsdom' },
   plugins: [
@@ -29,8 +26,8 @@ export default defineConfig({
       registerType: 'prompt',
       includeAssets: ['icons/apple-touch-icon.png', 'icons/favicon.svg'],
       manifest: {
-        name: 'Clue Solver',
-        short_name: 'Clues',
+        name: 'Crosscheck',
+        short_name: 'Crosscheck',
         description: 'Type a word or phrase, get crossword answers and its meaning.',
         start_url: `${base}?source=pwa`,
         scope: base,

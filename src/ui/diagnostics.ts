@@ -102,7 +102,7 @@ export function mountDiagnostics(view: HTMLElement) {
 
   function copy() {
     const lines = [
-      `Clue Solver API status — ${new Date().toISOString()}`,
+      `Crosscheck API status — ${new Date().toISOString()}`,
       `origin: ${location.origin}`,
       `ua: ${navigator.userAgent}`,
       ...rows.map((r) => `${r.light.toUpperCase().padEnd(4)} ${r.ms != null ? String(r.ms).padStart(5) + 'ms' : '     --'}  ${r.check.name}: ${r.detail || 'not run'}`),

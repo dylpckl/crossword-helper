@@ -250,16 +250,17 @@ a { color: var(--blue); }
 .env dt { color: var(--ink-3); }
 .env dd { margin: 0; font-variant-numeric: tabular-nums; }
 .btnrow { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
-.btn { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px; min-height: 40px; }
+.btn { flex: none; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px 14px; font-size: 14px; min-height: 40px; }
 .btn.primary { background: var(--blue); color: var(--blue-ink); border-color: var(--blue); }
 .btn.danger { color: var(--bad); }
 
 /* ---------- settings ---------- */
-.setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-top: 1px solid var(--rule-2); }
+.setting { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 14px; padding: 14px 0; border-top: 1px solid var(--rule-2); }
+.setting .text { flex: 1 1 11rem; min-width: 0; }
 .setting:first-of-type { border-top: 0; }
 .setting .label { font-weight: 500; }
 .setting .sub { font-size: 13px; color: var(--ink-3); }
-.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; }
+.seg { display: inline-flex; flex: none; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; }
 .seg button { border: 0; background: transparent; padding: 7px 12px; font-size: 13px; color: var(--ink-2); }
 .seg button[aria-pressed="true"] { background: var(--blue); color: var(--blue-ink); }
 .switch { width: 46px; height: 28px; border-radius: 999px; border: 0; background: var(--dim); position: relative; flex: none; }

@@ -6,17 +6,16 @@ import { mountDiagnostics } from './ui/diagnostics';
 import { applyTheme, mountAbout, mountSettings } from './ui/settings';
 import { getSettings } from './store';
 
-const VERSION = __APP_VERSION__;
 const VIEWS: ViewId[] = ['solver', 'diagnostics', 'settings', 'about'];
 
 applyTheme(getSettings().theme);
 
 const app = document.getElementById('app')!;
-const shell = mountShell(app, VERSION);
+const shell = mountShell(app);
 const solver = mountSolver(shell.views.solver, shell);
 mountDiagnostics(shell.views.diagnostics);
 mountSettings(shell.views.settings, () => { solver.refreshHistory(); solver.applySettings(); });
-mountAbout(shell.views.about, VERSION);
+mountAbout(shell.views.about);
 
 // Views raise toasts as bubbling events so they don't need the shell.
 app.addEventListener('toast', (e) => shell.toast((e as CustomEvent<string>).detail));

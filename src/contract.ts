@@ -1,5 +1,5 @@
 /**
- * Clue Solver — data model contract.
+ * Crosscheck — data model contract.
  *
  * This file is the single source of truth for the shapes that flow between
  * the UI, the provider adapters, the cache, and (later) the optional Claude
