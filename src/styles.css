@@ -15,6 +15,10 @@
   --bad: #A3362B;
   --scrim: rgba(27, 27, 27, .35);
   --dock-fade: rgba(27, 27, 27, .07);
+  /* Chrome sits a shade deeper than the page in both themes, which keeps the
+     input the lightest surface either way and stops it merging with the bar. */
+  --chrome: #E6DFD0;
+  --chrome-edge: rgba(27, 27, 27, .10);
   --shadow: 0 1px 0 rgba(27,27,27,.06), 0 8px 24px rgba(27,27,27,.12);
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -38,6 +42,8 @@
   --bad: #E07A6E;
   --scrim: rgba(0, 0, 0, .55);
   --dock-fade: rgba(0, 0, 0, .4);
+  --chrome: #121216;
+  --chrome-edge: rgba(0, 0, 0, .6);
   --shadow: 0 1px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
   color-scheme: dark;
 }
@@ -61,10 +67,10 @@ a { color: var(--blue); }
 
 /* ---------- app bar ---------- */
 .appbar {
-  position: sticky; top: 0; z-index: 3; background: var(--ground);
+  position: sticky; top: 0; z-index: 3;
   padding-top: var(--sat); height: calc(48px + var(--sat));
   display: flex; align-items: center; gap: 6px; padding-left: 8px; padding-right: 8px;
-  border-bottom: 1px solid var(--rule-2);
+  background: var(--chrome);
 }
 .appbar h1 { font: 500 18px/1 Georgia, "Times New Roman", serif; letter-spacing: -.01em; margin: 0; flex: 1; padding-left: 6px; }
 .iconbtn {
@@ -119,7 +125,11 @@ body.locked { overflow: hidden; }
 .view p.lead { color: var(--ink-2); margin: 0 0 18px; max-width: 60ch; }
 
 /* ---------- search ---------- */
-.searchbar { position: sticky; top: calc(48px + var(--sat)); z-index: 2; background: var(--ground); padding: 12px 0 10px; }
+.searchbar {
+  position: sticky; top: calc(48px + var(--sat)); z-index: 2;
+  background: var(--chrome); margin: 0 -18px; padding: 12px 18px 12px;
+  box-shadow: 0 1px 0 var(--rule), 0 8px 16px -10px var(--chrome-edge);
+}
 
 /*
  * Bottom search: only the query docks, so the letters field and the length row
@@ -129,10 +139,10 @@ body.locked { overflow: hidden; }
 body.search-bottom .querybar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 3;
   width: 100%; max-width: 480px; margin: 0 auto;
-  background: var(--ground); padding: 10px 18px calc(10px + var(--sab));
-  box-shadow: 0 -1px 0 var(--rule-2), 0 -10px 24px var(--dock-fade);
+  background: var(--chrome); padding: 10px 18px calc(10px + var(--sab));
+  box-shadow: 0 -1px 0 var(--rule), 0 -10px 24px var(--dock-fade);
 }
-body.search-bottom .searchbar { padding-top: 10px; }
+body.search-bottom .searchbar { padding: 0; margin: 0; background: transparent; box-shadow: none; }
 body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .search { display: flex; gap: 8px; }
 .field {
@@ -298,7 +308,7 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .links a svg { width: 11px; height: 11px; }
 
 /* recent: one line under the input that scrolls sideways rather than wrapping */
-.recent { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 4px; margin-bottom: 4px; }
+.recent { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 12px 0 4px; margin-bottom: 4px; }
 .recent::-webkit-scrollbar { display: none; }
 .recent button {
   flex: none; border: 1px solid var(--rule); background: transparent; color: var(--ink-2); border-radius: 999px;
