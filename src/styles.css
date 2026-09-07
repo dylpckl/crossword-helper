@@ -71,8 +71,6 @@ a { color: var(--blue); }
 }
 .iconbtn:hover { background: var(--rule-2); }
 .iconbtn svg { width: 22px; height: 22px; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
-.status-dot.off { background: var(--bad); }
 
 /* ---------- drawer ---------- */
 .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 4; opacity: 0; pointer-events: none; transition: opacity .18s; }

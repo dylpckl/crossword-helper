@@ -29,10 +29,9 @@ function route() {
 window.addEventListener('hashchange', route);
 route();
 
-// Online indicator
-shell.setOnline(navigator.onLine);
-window.addEventListener('online', () => { shell.setOnline(true); shell.toast('Back online'); });
-window.addEventListener('offline', () => { shell.setOnline(false); shell.toast("You're offline — cached results still work"); });
+// Connectivity changes are announced with a toast; there is no persistent indicator.
+window.addEventListener('online', () => shell.toast('Back online'));
+window.addEventListener('offline', () => shell.toast("You're offline. Cached results still work."));
 
 // Share target (?q=) and deep links (?q=&p=)
 const params = new URLSearchParams(location.search);
