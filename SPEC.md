@@ -266,6 +266,11 @@ Layout intent (one input, two jobs):
   and the header link with a Clue / Word control under the search box, and the
   choice is remembered between searches.
 
+Shell: a thin app bar with the name on the left and a cog on the right. The cog
+opens a bottom sheet holding settings and about together; there is no navigation,
+because the solver is the app. Diagnostics is the one separate view, reached from
+"Check data sources" at the bottom of the sheet, with a back arrow in the bar.
+
 Behavior:
 
 - Submit on Enter and on input blur if text changed. Debounce 300ms on typing

@@ -19,7 +19,8 @@ npm run preview    # serve dist/ locally (service worker active)
 
 ## Check the endpoints
 
-Open the menu (top left) and choose **API status**. It calls every upstream
+Open the cog (top right) and tap **Check data sources** at the bottom of the
+sheet. It calls every upstream
 endpoint from the current origin and reports status, latency, and whether the
 browser let the response through. Run it from a deployed origin at least once
 before trusting the no-backend design; "Failed to fetch" with the network up
