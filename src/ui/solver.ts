@@ -21,6 +21,7 @@ export interface Solver {
 export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   view.innerHTML = `
     <div class="searchbar">
+      <div class="querybar" id="querybar">
       <form class="search" id="form" autocomplete="off">
         <label class="field">
           <span class="sr">Clue</span>
@@ -33,6 +34,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         </button>
       </form>
+      <div class="form-error" id="formError" hidden></div>
+      </div>
       <div class="constraints">
         <label class="pattern">
           <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="4" height="4"/><rect x="7" y="1" width="4" height="4"/><rect x="1" y="7" width="4" height="4"/><rect x="7" y="7" width="4" height="4"/></svg>
@@ -47,7 +50,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
         <button type="button" data-mode="clue">Clue</button>
         <button type="button" data-mode="word">Word</button>
       </div>
-      <div class="form-error" id="formError" hidden></div>
     </div>
     <div id="out"></div>
     <div id="recent"></div>`;
@@ -94,6 +96,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     return current?.definition ? 'Show as word' : '';
   }
   function applySettings() {
+    document.body.classList.toggle('search-bottom', getSettings().searchPosition === 'bottom');
     const manual = isManual();
     modeCtl.hidden = !manual;
     if (manual) {
@@ -237,7 +240,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     const len = t.closest<HTMLElement>('[data-len]');
     if (len) {
       const n = Number(len.dataset.len);
-      lengthFilter = lengthFilter === n ? null : n;
+      lengthFilter = n === 0 || lengthFilter === n ? null : n;
       repaintAll();
       return;
     }
