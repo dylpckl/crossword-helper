@@ -159,6 +159,15 @@ body.locked { overflow: hidden; }
 .notice.bad { color: var(--bad); }
 
 /* answers */
+.lens { display: flex; gap: 7px; flex-wrap: wrap; padding: 2px 0 10px; }
+.lens button {
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-2); border-radius: 999px;
+  min-height: 40px; padding: 0 14px; font-size: 14px; display: inline-flex; align-items: baseline; gap: 5px;
+}
+.lens button b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.lens button span { font-size: 11.5px; color: var(--ink-3); }
+.lens button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: var(--blue-ink); }
+.lens button[aria-pressed="true"] span { color: var(--blue-ink); opacity: .75; }
 .answers { display: flex; flex-direction: column; }
 .row {
   display: grid; grid-template-columns: 1fr; grid-template-areas: "tiles" "gloss";
