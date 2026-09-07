@@ -7,13 +7,9 @@ export function skeletonAnswers(): string {
   </section>`;
 }
 
-export const COMPACT_ROWS = 3;
-
 export interface AnswersOpts {
   fromCache?: boolean;
   error?: ProviderError;
-  /** Show only the first few rows with a "show more" button. */
-  compact?: boolean;
   /**
    * Show only answers of this length. A view-time filter over answers already
    * fetched, so it costs no request; a length with no answers is ignored.
@@ -47,16 +43,12 @@ export function renderAnswers(answers: Answer[], req: SolveRequest, opts: Answer
     // Counts live in the label rather than on screen: two bare numbers side by
     // side read as one ambiguous pair. "All" is the filter's visible off switch.
     const chips = counts.length > 1
-      ? `<div class="lens"><div class="lensbar" role="group" aria-label="Filter by length">
+      ? `<div class="lenrow"><span class="lenlabel">Length</span><div class="lens"><div class="lensbar" role="group" aria-label="Filter by length">
           <button type="button" data-len="0" aria-pressed="${active === null}">All</button>${counts
             .map(([n, k]) => `<button type="button" data-len="${n}" aria-pressed="${n === active}" aria-label="${n} letters, ${k} answer${k === 1 ? '' : 's'}">${n}</button>`)
-            .join('')}</div></div>`
+            .join('')}</div></div></div>`
       : '';
-    const shown = opts.compact && !active ? filtered.slice(0, COMPACT_ROWS) : filtered;
-    const hidden = filtered.length - shown.length;
-    body = `${chips}<div class="answers">${shown.map((a) => row(a, req)).join('')}</div>${
-      hidden > 0 ? `<button type="button" class="more" data-expand-answers>Show ${hidden} more</button>` : ''
-    }`;
+    body = `${chips}<div class="answers">${filtered.map((a) => row(a, req)).join('')}</div>`;
   }
   return `<section class="section" id="sec-answers">${head}${body}</section>`;
 }

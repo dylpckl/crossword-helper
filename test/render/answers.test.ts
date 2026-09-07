@@ -47,10 +47,8 @@ describe('length chips', () => {
     expect(renderAnswers([make('seer'), make('ezra')], { query: 'x' })).not.toContain('class="lens"');
   });
 
-  it('shows all matches when filtering, even in compact mode', () => {
-    const html = renderAnswers(ANSWERS, { query: 'x' }, { compact: true, lengthFilter: 4 });
-    expect(html).toContain('data-answer="EZRA"');
-    expect(html).not.toContain('data-expand-answers');
+  it('labels the row so two numbers are never left to speak for themselves', () => {
+    expect(renderAnswers(ANSWERS, { query: 'x' })).toContain('class="lenlabel">Length');
   });
 });
 
@@ -72,6 +70,10 @@ describe('meaning disclosure', () => {
     ],
     source: 'dictionaryapi' as const,
   };
+
+  it('is closed unless asked otherwise', () => {
+    expect(renderMeaning(DEF, REF, LINKS, 'tide')).toContain('aria-expanded="false"');
+  });
 
   it('carries both sources in one disclosure', () => {
     const html = renderMeaning(DEF, REF, LINKS, 'tide', [], { open: true });

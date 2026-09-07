@@ -7,13 +7,15 @@ const SOURCE_LABEL = { dictionaryapi: 'Free Dictionary API', wiktionary: 'Wiktio
 const CHEVRON = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 
 export function skeletonMeaning(): string {
-  return `<section class="section meaning open" id="sec-meaning"><h2>Meaning</h2><div class="sk card"></div></section>`;
+  return `<section class="section meaning" id="sec-meaning"><h2>Meaning</h2><div class="sk short"></div></section>`;
 }
 
 export interface MeaningOpts {
   /** Expanded shows the cards; collapsed shows one line you can tap open. */
   open?: boolean;
 }
+
+/** Closed unless asked otherwise: answers are what the search was for. */
 
 /**
  * Meaning gathers everything that answers "what is this": the dictionary entry,
@@ -39,7 +41,7 @@ export function renderMeaning(
     const msg = err ? `${esc(err.message)}.` : `No dictionary entry for “${esc(query)}”. Phrases often don't have one.`;
     return `<section class="section meaning" id="sec-meaning"><h2>Meaning</h2><div class="muted${err ? ' notice bad' : ''}">${msg}</div>${linkRow(links)}</section>`;
   }
-  const open = opts.open !== false;
+  const open = opts.open === true;
   return `<section class="section meaning${open ? ' open' : ''}" id="sec-meaning">
     <h2><button type="button" class="disclosure" data-toggle-meaning aria-expanded="${open}" aria-controls="meaning-body">Meaning${
       r?.kind === 'disambiguation' ? '<span class="pill">Several meanings</span>' : ''
