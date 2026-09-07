@@ -1,4 +1,5 @@
-import type { Definition, ProviderError, Reference } from '../contract';
+import type { Definition, ProviderError, Reference, SearchLink } from '../contract';
+import { linkRow } from './links';
 import { esc } from './util';
 
 const SHOWN = 2;
@@ -15,9 +16,10 @@ export interface MeaningOpts {
 }
 
 /**
- * Meaning gathers everything that answers "what is this": the dictionary entry
- * and the Wikipedia summary. They come from different sources — each says which
- * — but they answer the same question, so they share one disclosure.
+ * Meaning gathers everything that answers "what is this": the dictionary entry,
+ * the Wikipedia summary, and the links out. They come from different sources —
+ * each says which — but they answer the same question, so they share one
+ * disclosure.
  *
  * Both states are always in the DOM. The closed one is collapsed to zero height
  * by a grid row transition, which is what lets the open and close animate in CSS
@@ -26,14 +28,16 @@ export interface MeaningOpts {
 export function renderMeaning(
   d: Definition | null,
   r: Reference | null,
+  links: SearchLink[],
   query: string,
   errors: ProviderError[] = [],
   opts: MeaningOpts = {},
 ): string {
   if (!d && !r) {
+    // Nothing to disclose, so no control — but the links still need a home.
     const err = errors.find((e) => e.provider === 'Free Dictionary' || e.provider === 'Wiktionary');
     const msg = err ? `${esc(err.message)}.` : `No dictionary entry for “${esc(query)}”. Phrases often don't have one.`;
-    return `<section class="section meaning" id="sec-meaning"><h2>Meaning</h2><div class="muted${err ? ' notice bad' : ''}">${msg}</div></section>`;
+    return `<section class="section meaning" id="sec-meaning"><h2>Meaning</h2><div class="muted${err ? ' notice bad' : ''}">${msg}</div>${linkRow(links)}</section>`;
   }
   const open = opts.open !== false;
   return `<section class="section meaning${open ? ' open' : ''}" id="sec-meaning">
@@ -44,6 +48,7 @@ export function renderMeaning(
     <div class="bodywrap" id="meaning-body"><div class="inner">
       ${d ? definitionCard(d) : ''}
       ${r ? referenceCard(r) : ''}
+      ${linkRow(links)}
     </div></div></section>`;
 }
 

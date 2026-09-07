@@ -2,7 +2,6 @@ import type { SolveResult, SolveRequest } from '../contract';
 import { parsePattern } from '../pattern';
 import { renderAnswers, skeletonAnswers } from '../render/answers';
 import { renderHistory } from '../render/history';
-import { renderLinks } from '../render/links';
 import { renderMeaning, skeletonMeaning } from '../render/meaning';
 import { esc } from '../render/util';
 import { rankAnswers } from '../rank';
@@ -50,13 +49,13 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
         <span class="hint" id="phint"></span>
       </div>
     </div>
-    <div id="out"></div>
-    <div id="recent"></div>`;
+    <div id="recent"></div>
+    <div id="out"></div>`;
 
   const $ = <T extends HTMLElement>(id: string) => view.querySelector<T>(`#${id}`)!;
   const q = $<HTMLInputElement>('q'), p = $<HTMLInputElement>('p'), out = $('out'), form = $<HTMLFormElement>('form');
   const phint = $('phint'), formError = $('formError'), clearBtn = $('clear'), pclear = $<HTMLButtonElement>('pclear');
-  const sections = { meaning: '', answers: '', links: '' };
+  const sections = { meaning: '', answers: '' };
 
   /**
    * Wrap a re-render so the browser tweens between the old and new lists.
@@ -94,7 +93,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   }
 
   function paint() {
-    out.innerHTML = sections.meaning + sections.answers + sections.links;
+    out.innerHTML = sections.meaning + sections.answers;
   }
   /** Swap one section in place, so the others keep their DOM and their state. */
   function paintAnswers() {
@@ -112,14 +111,13 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   function renderSections() {
     if (!current) return;
     const r = current, req = r.request;
-    sections.meaning = renderMeaning(r.definition, r.reference, req.query, r.errors, { open: meaningOpen });
+    sections.meaning = renderMeaning(r.definition, r.reference, r.links, req.query, r.errors, { open: meaningOpen });
     sections.answers = renderAnswers(r.answers, req, {
       fromCache: r.fromCache,
       error: r.errors.find((e) => e.provider === 'Datamuse'),
       compact: meaningOpen && !expanded,
       lengthFilter,
     });
-    sections.links = renderLinks(r.links);
   }
 
   /**
@@ -193,7 +191,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     current = null;
     sections.meaning = skeletonMeaning();
     sections.answers = skeletonAnswers();
-    sections.links = renderLinks(buildLinks(req.query, false));
     meaningOpen = guessOpen(req.query, undefined);
     paint();
 
@@ -201,7 +198,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     let liveDef: Parameters<typeof renderMeaning>[0] = null;
     let liveRef: Parameters<typeof renderMeaning>[1] = null;
     const paintMeaning = () => {
-      sections.meaning = renderMeaning(liveDef, liveRef, req.query, [], { open: meaningOpen });
+      sections.meaning = renderMeaning(liveDef, liveRef, buildLinks(req.query, liveRef !== null), req.query, [], { open: meaningOpen });
       paint();
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -217,7 +214,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       reference: (r) => {
         if (mine.signal.aborted) return;
         liveRef = r;
-        sections.links = renderLinks(buildLinks(req.query, r !== null));
         paintMeaning();
       },
       done: (r) => {

@@ -55,6 +55,7 @@ describe('length chips', () => {
 });
 
 describe('meaning disclosure', () => {
+  const LINKS = [{ label: 'Google', url: 'https://example.com' }];
   const REF = {
     title: 'Tide',
     extract: 'Tides are the rise and fall of sea levels.',
@@ -73,7 +74,7 @@ describe('meaning disclosure', () => {
   };
 
   it('carries both sources in one disclosure', () => {
-    const html = renderMeaning(DEF, REF, 'tide', [], { open: true });
+    const html = renderMeaning(DEF, REF, LINKS, 'tide', [], { open: true });
     expect(html).toContain('aria-expanded="true"');
     expect(html).toContain('class="section meaning open"');
     expect(html).toContain('The periodic rise and fall of the sea.');
@@ -83,7 +84,7 @@ describe('meaning disclosure', () => {
   });
 
   it('keeps both states in the DOM so the height can animate', () => {
-    const html = renderMeaning(DEF, REF, 'tide', [], { open: false });
+    const html = renderMeaning(DEF, REF, LINKS, 'tide', [], { open: false });
     expect(html).toContain('aria-expanded="false"');
     expect(html).not.toContain('class="section meaning open"');
     // Collapsed, but present: CSS transitions the grid row, not display.
@@ -92,14 +93,20 @@ describe('meaning disclosure', () => {
   });
 
   it('peeks the summary when only Wikipedia has anything', () => {
-    const html = renderMeaning(null, REF, 'big apple', [], { open: false });
+    const html = renderMeaning(null, REF, LINKS, 'big apple', [], { open: false });
     expect(html).toContain('data-toggle-meaning');
     expect(html).toContain('Tides are the rise and fall of sea levels.');
   });
 
-  it('offers no control when neither source has anything', () => {
-    const html = renderMeaning(null, null, 'out of the country');
+  it('offers no control when neither source has anything, but still links out', () => {
+    const html = renderMeaning(null, null, LINKS, 'out of the country');
     expect(html).not.toContain('data-toggle-meaning');
     expect(html).toContain('No dictionary entry');
+    expect(html).toContain('Search elsewhere');
+  });
+
+  it('keeps the links inside the disclosure', () => {
+    const html = renderMeaning(DEF, REF, LINKS, 'tide', [], { open: true });
+    expect(html.indexOf('Search elsewhere')).toBeGreaterThan(html.indexOf('bodywrap'));
   });
 });
