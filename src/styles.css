@@ -193,7 +193,10 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
  */
 .meaning .peekwrap, .meaning .bodywrap { display: grid; transition: grid-template-rows .28s ease, opacity .2s ease; }
 .meaning .peekwrap > .inner, .meaning .bodywrap > .inner { overflow: hidden; min-height: 0; }
-.meaning .bodywrap > .inner { display: flex; flex-direction: column; gap: 18px; }
+.meaning .bodywrap > .inner { display: block; }
+/* One panel, so everything the disclosure holds reads as being inside it. */
+.meaning .panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 16px; }
+.meaning .panel > .block + .block { border-top: 1px solid var(--rule-2); margin-top: 14px; padding-top: 14px; }
 .meaning .peekwrap { grid-template-rows: 1fr; opacity: 1; }
 .meaning .bodywrap { grid-template-rows: 0fr; opacity: 0; }
 .meaning.open .peekwrap { grid-template-rows: 0fr; opacity: 0; }
@@ -257,13 +260,15 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .senses .pos { font-style: italic; color: var(--ink-3); font-size: 13px; padding-top: 2px; min-width: 22px; }
 .senses .ex { display: block; color: var(--ink-3); font-size: 13px; margin-top: 2px; }
 .senses li.more { display: none; }
-.card.expanded .senses li.more { display: grid; }
+.block.expanded .senses li.more { display: grid; }
 .toggle { margin-top: 10px; border: 0; background: transparent; color: var(--blue); font-size: 13px; padding: 4px 0; }
-.card.expanded .when-closed, .card:not(.expanded) .when-open { display: none; }
+.block.expanded .when-closed, .block:not(.expanded) .when-open { display: none; }
 .src { margin-top: 10px; font-size: 11px; color: var(--ink-3); letter-spacing: .03em; }
 
 /* about */
 .about { display: grid; grid-template-columns: 64px 1fr; gap: 12px; text-decoration: none; color: inherit; }
+.meaning .panel .about:not(.nothumb) { grid-template-columns: 56px 1fr; }
+.meaning .panel .thumb { width: 56px; height: 56px; }
 .about.nothumb { grid-template-columns: 1fr; }
 .thumb { width: 64px; height: 64px; border-radius: 8px; background: var(--blue-tint); overflow: hidden; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -272,7 +277,7 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .about .extract { font-size: 14px; color: var(--ink-2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* links */
-.linkblock { padding-top: 2px; }
+
 .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
 .links { display: flex; gap: 8px; flex-wrap: wrap; }
 .links a { text-decoration: none; font-size: 13px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); display: inline-flex; align-items: center; gap: 5px; min-height: 36px; }

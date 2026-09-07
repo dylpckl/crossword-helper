@@ -283,7 +283,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     }
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
-    if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');
+    if (t.closest('[data-expand]')) t.closest('.block')?.classList.toggle('expanded');
   });
   $('recent').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-q]');
