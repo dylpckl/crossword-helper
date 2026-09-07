@@ -92,7 +92,10 @@ a { color: var(--blue); }
 .navbtn svg { width: 20px; height: 20px; color: var(--ink-2); }
 .navbtn[aria-current="page"] { background: var(--blue-tint); color: var(--blue); }
 .navbtn[aria-current="page"] svg { color: var(--blue); }
-.drawer .foot { margin-top: auto; font-size: 12px; color: var(--ink-3); padding: 0 12px; }
+.drawer .foot { margin-top: auto; padding: 0 12px; display: flex; flex-direction: column; border-top: 1px solid var(--rule-2); padding-top: 6px; }
+.footlink { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink-2); font-size: 14px; min-height: 44px; }
+.footlink svg { width: 18px; height: 18px; color: var(--ink-3); }
+.build { font-size: 12px; color: var(--ink-3); text-decoration: none; padding: 6px 0 4px; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .drawer, .scrim { transition: none; } }
 
 /* ---------- views ---------- */
