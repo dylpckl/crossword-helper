@@ -41,7 +41,6 @@ export function mountShell(app: HTMLElement): Shell {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>
           Buy me a coffee
         </a>
-        <a class="build" href="${REPO_URL}/commit/${COMMIT}" target="_blank" rel="noopener" title="Open this build's commit">Build ${COMMIT}</a>
       </div>
     </nav>
     ${NAV.map((n) => `<main class="view" id="view-${n.id}" hidden></main>`).join('')}
