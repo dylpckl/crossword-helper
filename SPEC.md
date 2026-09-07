@@ -258,10 +258,11 @@ Sections keep a fixed order for every search: **Meaning, Answers**. Meaning
 gathers everything that answers "what is this" — the dictionary entry, the
 Wikipedia summary, and the links out — behind one disclosure, each card naming
 its own source. Recent searches sit directly under the input as a single row of
-pills that scrolls sideways. Open, it shows both cards and the answer list below is
-capped at three rows; collapsed, it is a single tappable line carrying the first
-sense, and the answers show in full. The app guesses the state — open when a
-short input got a definition — and a tap on the header overrides it.
+pills that scrolls sideways. It is closed on every search: answers are what
+was asked for, and the definition is one tap away when it is wanted. Collapsed
+it is a single tappable line carrying the first sense; open it shows the cards.
+The answer list is never truncated either way. A rule above the Answers header
+separates the two.
 
 Both states stay in the DOM so the open and close can animate: a grid row
 transitions between `0fr` and `1fr`, which lets the browser measure the content
@@ -270,8 +271,8 @@ inside a View Transition, and each row carries a `view-transition-name` so rows
 morph rather than jump. Where View Transitions are missing, or motion is not
 wanted, both changes simply apply at once. No animation library.
 
-Answer length is a segmented row under the Answers header: "All" followed by one
-segment per length that actually has answers. Counts stay in the accessible label
+Answer length is a segmented row under the Answers header, labelled "Length":
+"All" followed by one segment per length that actually has answers. Counts stay in the accessible label
 rather than on screen, because a number beside a number reads as one ambiguous
 pair. The row scrolls sideways so it never wraps, whatever the clue.
 It is a view-time filter over answers already fetched, so it costs no request

@@ -75,23 +75,13 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let liveTimer: number | undefined;
 
   /**
-   * Whether the Meaning section is open. Sections keep a fixed order —
-   * Meaning, Answers, About — so nothing reflows when the definition lands.
-   * The app guesses from the result and the user overrides by tapping the
-   * header; the same state collapses answers, since an open definition means
-   * the word is the point.
+   * Whether the Meaning section is open. Closed by default on every search:
+   * answers are what was asked for, and the definition is one tap away when
+   * it's wanted. Sections keep a fixed order, so nothing reflows as results land.
    */
-  let meaningOpen = true;
-  /** "Show N more" on the answers, independent of the disclosure. */
-  let expanded = false;
+  let meaningOpen = false;
   /** Length segment selection. View-only, reset on each new search. */
   let lengthFilter: number | null = null;
-
-  function guessOpen(query: string, definition: SolveResult['definition'] | undefined): boolean {
-    const short = query.split(' ').length <= 2;
-    if (definition === undefined) return short; // still loading: provisional
-    return short && Boolean(definition);
-  }
 
   function paint() {
     const body = sections.meaning + sections.answers;
@@ -117,16 +107,11 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     sections.answers = renderAnswers(r.answers, req, {
       fromCache: r.fromCache,
       error: r.errors.find((e) => e.provider === 'Datamuse'),
-      compact: meaningOpen && !expanded,
       lengthFilter,
     });
   }
 
-  /**
-   * Toggling only flips a class, so the CSS height transition can run. The
-   * answers change too — an open definition means the word is the point, so
-   * the list stays short — and that swap gets its own transition.
-   */
+  /** Toggling only flips a class, so the CSS height transition can run. */
   function toggleMeaning() {
     meaningOpen = !meaningOpen;
     const sec = out.querySelector('#sec-meaning');
@@ -134,7 +119,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     sec?.querySelector('.disclosure')?.setAttribute('aria-expanded', String(meaningOpen));
     sec?.querySelector('.peek')?.setAttribute('tabindex', meaningOpen ? '-1' : '0');
     renderSections();
-    withTransition(paintAnswers);
   }
 
   function applySettings() {
@@ -147,7 +131,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl = null;
     clearTimeout(liveTimer);
     current = null;
-    expanded = false;
     lengthFilter = null;
     sections.meaning = '';
     sections.answers = '';
@@ -202,12 +185,11 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl?.abort();
     ctl = new AbortController();
     const mine = ctl;
-    expanded = false;
     lengthFilter = null;
     current = null;
     sections.meaning = skeletonMeaning();
     sections.answers = skeletonAnswers();
-    meaningOpen = guessOpen(req.query, undefined);
+    meaningOpen = false;
     paint();
 
     // The two halves of Meaning land separately; keep both and redraw the pair.
@@ -224,7 +206,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       definition: (d) => {
         if (mine.signal.aborted) return;
         liveDef = d;
-        meaningOpen = guessOpen(req.query, d);
         paintMeaning();
       },
       reference: (r) => {
@@ -289,12 +270,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       return;
     }
     if (t.closest('[data-toggle-meaning]')) { toggleMeaning(); return; }
-    if (t.closest('[data-expand-answers]')) {
-      expanded = true;
-      renderSections();
-      withTransition(paintAnswers);
-      return;
-    }
     const len = t.closest<HTMLElement>('[data-len]');
     if (len) {
       const n = Number(len.dataset.len);

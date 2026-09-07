@@ -224,6 +224,9 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .notice { color: var(--ink-3); font-size: 13px; padding: 6px 0 0; }
 .notice.bad { color: var(--bad); }
 
+/* a rule above the answers, so the two sections are visibly separate */
+#sec-answers { border-top: 1px solid var(--rule); padding-top: 18px; margin-top: 20px; }
+
 /* empty state */
 .empty-state { padding: 42px 0 24px; text-align: center; }
 .empty-state .motif { display: flex; justify-content: center; gap: 4px; margin-bottom: 22px; opacity: .55; }
@@ -239,7 +242,9 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .examples button:active { background: var(--rule-2); }
 
 /* answers */
-.lens { display: flex; overflow-x: auto; scrollbar-width: none; padding: 1px 0 12px; }
+.lenrow { display: flex; align-items: center; gap: 10px; padding-bottom: 12px; }
+.lenlabel { flex: none; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
+.lens { display: flex; overflow-x: auto; scrollbar-width: none; padding: 1px 0; min-width: 0; }
 .lens::-webkit-scrollbar { display: none; }
 .lensbar { display: inline-flex; flex: none; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; background: var(--paper); }
 .lensbar button {
