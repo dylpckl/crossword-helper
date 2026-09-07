@@ -45,11 +45,11 @@ export function renderMeaning(
       r?.kind === 'disambiguation' ? '<span class="pill">Several meanings</span>' : ''
     }${CHEVRON}</button></h2>
     <div class="peekwrap"><div class="inner"><button type="button" class="peek" data-toggle-meaning tabindex="${open ? -1 : 0}">${peek(d, r)}</button></div></div>
-    <div class="bodywrap" id="meaning-body"><div class="inner">
+    <div class="bodywrap" id="meaning-body"><div class="inner"><div class="panel">
       ${d ? definitionCard(d) : ''}
       ${r ? referenceCard(r) : ''}
       ${linkRow(links)}
-    </div></div></section>`;
+    </div></div></div></section>`;
 }
 
 /** One line for the collapsed state: the definition if there is one, else the summary. */
@@ -70,7 +70,7 @@ function definitionCard(d: Definition): string {
       }</span></li>`,
     )
     .join('');
-  return `<div class="card">
+  return `<div class="block">
     <div class="head"><span class="term">${esc(d.term)}</span>${d.phonetic ? `<span class="ipa">${esc(d.phonetic)}</span>` : ''}
       ${d.audioUrl ? `<button class="play" type="button" aria-label="Play pronunciation" data-audio="${esc(d.audioUrl)}"><svg viewBox="0 0 12 12" fill="currentColor" aria-hidden="true"><path d="M2 1l9 5-9 5z"/></svg></button>` : ''}
     </div>
@@ -81,7 +81,7 @@ function definitionCard(d: Definition): string {
 }
 
 function referenceCard(r: Reference): string {
-  return `<a class="about${r.thumbnailUrl ? '' : ' nothumb'}" href="${esc(r.url)}" target="_blank" rel="noopener">
+  return `<a class="block about${r.thumbnailUrl ? '' : ' nothumb'}" href="${esc(r.url)}" target="_blank" rel="noopener">
     ${r.thumbnailUrl ? `<span class="thumb"><img src="${esc(r.thumbnailUrl)}" alt="" loading="lazy" onerror="this.closest('.about').classList.add('nothumb');this.parentElement.remove()"></span>` : ''}
     <span><span class="title">${esc(r.title)} <span class="ext">Wikipedia ↗</span></span><span class="extract">${esc(r.extract)}</span></span>
   </a>`;

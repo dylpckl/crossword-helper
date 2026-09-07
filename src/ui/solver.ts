@@ -139,6 +139,20 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     document.body.classList.toggle('search-bottom', getSettings().searchPosition === 'bottom');
     repaintAll();
   }
+  /** Empty input means no results: drop them rather than leave a stale answer set. */
+  function clearResults() {
+    ctl?.abort();
+    ctl = null;
+    clearTimeout(liveTimer);
+    current = null;
+    expanded = false;
+    lengthFilter = null;
+    sections.meaning = '';
+    sections.answers = '';
+    formError.hidden = true;
+    paint();
+  }
+
   function refreshHistory() {
     $('recent').innerHTML = renderHistory(getHistory());
   }
@@ -231,12 +245,18 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   form.addEventListener('submit', (e) => { e.preventDefault(); clearTimeout(liveTimer); q.blur(); run(); });
   q.addEventListener('input', () => {
     clearBtn.hidden = !q.value;
+    if (!q.value.trim()) { clearResults(); return; }
     if (getSettings().liveSearch && navigator.onLine && q.value.trim().length >= 3) {
       clearTimeout(liveTimer);
       liveTimer = window.setTimeout(run, 450);
     }
   });
-  clearBtn.addEventListener('click', () => { q.value = ''; clearBtn.hidden = true; q.focus(); });
+  clearBtn.addEventListener('click', () => {
+    q.value = '';
+    clearBtn.hidden = true;
+    clearResults();
+    q.focus();
+  });
   pclear.addEventListener('click', () => { p.value = ''; onConstraintInput(); p.focus(); });
   p.addEventListener('input', onConstraintInput);
   p.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); form.requestSubmit(); } });
@@ -283,7 +303,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     }
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
-    if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');
+    if (t.closest('[data-expand]')) t.closest('.block')?.classList.toggle('expanded');
   });
   $('recent').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-q]');
