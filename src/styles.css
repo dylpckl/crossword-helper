@@ -165,18 +165,27 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .constraints .hint { font-size: 12px; color: var(--ink-3); flex: 1; min-width: 0; }
 .constraints .hint b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
 .constraints .hint.err { color: var(--bad); }
-.modectl { display: flex; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; width: max-content; margin-top: 10px; }
-.modectl button { border: 0; background: transparent; color: var(--ink-2); font-size: 13px; padding: 0 18px; min-height: 38px; }
-.modectl button[aria-pressed="true"] { background: var(--blue); color: var(--blue-ink); }
 .form-error { color: var(--bad); font-size: 13px; margin-top: 6px; }
 
 /* ---------- sections ---------- */
 .section { margin-top: 22px; }
 .section > h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
 .section > h2 .count { font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
-.swap { margin-left: auto; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; padding: 6px 0; }
+.disclosure {
+  flex: 1; display: flex; align-items: center; gap: 6px; border: 0; background: transparent;
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  padding: 6px 0; margin: -6px 0; text-align: left;
+}
+.disclosure .chev { width: 15px; height: 15px; color: var(--ink-3); transition: transform .18s; }
+.disclosure[aria-expanded="true"] .chev { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .disclosure .chev { transition: none; } }
+.peek {
+  display: block; width: 100%; text-align: left; border: 0; background: transparent;
+  padding: 2px 0 4px; font-size: 15px; color: var(--ink-2); line-height: 1.4;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.peek .pos { font-style: italic; color: var(--ink-3); margin: 0 5px 0 8px; }
 .more { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--blue); font-size: 14px; padding: 12px 0 4px; border-top: 1px solid var(--rule-2); }
-.card.hero { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
 .pill { margin-left: auto; font-size: 10px; letter-spacing: .06em; padding: 3px 7px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2); text-transform: uppercase; }
 .muted { color: var(--ink-3); font-size: 14px; padding: 6px 0; }
 .notice { color: var(--ink-3); font-size: 13px; padding: 6px 0 0; }

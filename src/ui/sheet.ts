@@ -2,7 +2,7 @@
  * The one sheet: settings on top, about and links below. Replaces the old
  * Settings and About views, so nothing here is more than a tap and a scroll away.
  */
-import { clearCache, clearHistory, getSettings, saveSettings, type ResultOrder, type SearchPosition, type Theme } from '../store';
+import { clearCache, clearHistory, getSettings, saveSettings, type SearchPosition, type Theme } from '../store';
 import { AUTHOR_URL, COMMIT, DONATE_URL, REPO_URL, type Shell } from './shell';
 
 export function applyTheme(theme: Theme) {
@@ -27,14 +27,6 @@ export function mountSheet(shell: Shell, onChange: () => void) {
         <div class="seg" role="group" aria-label="Theme">${(['system', 'light', 'dark'] as Theme[])
           .map((t) => `<button data-theme="${t}" aria-pressed="${s.theme === t}">${t[0]!.toUpperCase() + t.slice(1)}</button>`)
           .join('')}</div></div>
-      <div class="setting"><div class="text"><div class="label">Result order</div><div class="sub">${
-        s.resultOrder === 'auto'
-          ? 'Guesses whether you typed a word or a clue, and leads with the more useful section.'
-          : 'You choose. A Clue / Word control sits under the search box.'
-      }</div></div>
-        <div class="seg" role="group" aria-label="Result order">${(['auto', 'manual'] as ResultOrder[])
-          .map((o) => `<button data-order="${o}" aria-pressed="${s.resultOrder === o}">${o === 'auto' ? 'Auto' : 'Manual'}</button>`)
-          .join('')}</div></div>
       <div class="setting"><div class="text"><div class="label">Search box</div><div class="sub">${
         s.searchPosition === 'top' ? 'Under the app bar.' : 'Docked at the bottom, in thumb reach.'
       }</div></div>
@@ -50,7 +42,7 @@ export function mountSheet(shell: Shell, onChange: () => void) {
 
       <div class="sheet-about">
         <div class="name">Crosscheck</div>
-        <p>Type a word or phrase. It gets solved as a crossword clue and defined as a word, in one go. Add letters you already have to rank the answers that contain them, or a pattern like <code>SC?D?</code> to match by position.</p>
+        <p>Type a word or phrase. It gets solved as a crossword clue and defined as a word, in one go. Tap the Meaning header to open or close the definition. Add letters you already have to rank the answers that contain them, or a pattern like <code>SC?D?</code> to match by position.</p>
         <p>Answers from Datamuse. Definitions from the Free Dictionary API and Wiktionary. Summaries from Wikipedia. All free, no account, and nothing you type is sent anywhere else.</p>
         <div class="chips">
           <a href="${REPO_URL}" target="_blank" rel="noopener">${GITHUB_ICON}GitHub</a>
@@ -68,7 +60,6 @@ export function mountSheet(shell: Shell, onChange: () => void) {
     const t = (e.target as HTMLElement).closest<HTMLElement>('button');
     if (!t) return;
     if (t.dataset.theme) { applyTheme(saveSettings({ theme: t.dataset.theme as Theme }).theme); render(); }
-    else if (t.dataset.order) { saveSettings({ resultOrder: t.dataset.order as ResultOrder }); render(); onChange(); }
     else if (t.dataset.pos) { saveSettings({ searchPosition: t.dataset.pos as SearchPosition }); render(); onChange(); }
     else if (t.dataset.key === 'liveSearch') { saveSettings({ liveSearch: !getSettings().liveSearch }); render(); onChange(); }
     else if (t.dataset.action === 'clearHistory') { clearHistory(); onChange(); shell.toast('Recent searches cleared'); }

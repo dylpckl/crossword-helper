@@ -14,8 +14,6 @@ export interface AnswersOpts {
   error?: ProviderError;
   /** Show only the first few rows with a "show more" button. */
   compact?: boolean;
-  /** Header link that flips the layout, e.g. "Show as word". */
-  swap?: string;
   /**
    * Show only answers of this length. A view-time filter over answers already
    * fetched, so it costs no request; a length with no answers is ignored.
@@ -36,9 +34,8 @@ export function renderAnswers(answers: Answer[], req: SolveRequest, opts: Answer
   const active = counts.some(([n]) => n === opts.lengthFilter) ? opts.lengthFilter! : null;
   const filtered = active ? answers.filter((a) => a.length === active) : answers;
 
-  const swap = opts.swap ? `<button type="button" class="swap" data-swap>${esc(opts.swap)}</button>` : '';
   const label = active ? `${filtered.length} of ${answers.length}` : countLabel(answers, req);
-  const head = `<h2>Answers ${answers.length ? `<span class="count">${label}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}${swap}</h2>`;
+  const head = `<h2>Answers ${answers.length ? `<span class="count">${label}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}</h2>`;
 
   let body: string;
   if (opts.error && !answers.length) {
