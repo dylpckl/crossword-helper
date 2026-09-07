@@ -16,7 +16,6 @@ export interface Shell {
   root: HTMLElement;
   views: Record<ViewId, HTMLElement>;
   show(id: ViewId): void;
-  setOnline(online: boolean): void;
   toast(msg: string, action?: { label: string; onClick: () => void }): void;
 }
 
@@ -27,7 +26,6 @@ export function mountShell(app: HTMLElement, version: string): Shell {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <h1>Clue Solver</h1>
-      <span class="status-dot" id="onlineDot" title="Online"></span>
     </header>
     <div class="scrim" id="scrim"></div>
     <nav class="drawer" id="drawer" aria-label="Main">
@@ -87,11 +85,6 @@ export function mountShell(app: HTMLElement, version: string): Shell {
     root: app,
     views,
     show,
-    setOnline(online) {
-      const dot = $('onlineDot');
-      dot.classList.toggle('off', !online);
-      dot.title = online ? 'Online' : 'Offline';
-    },
     toast(msg, action) {
       toastEl.innerHTML = '';
       toastEl.append(msg);
