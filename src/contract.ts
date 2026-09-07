@@ -34,13 +34,21 @@ export interface SolveRequest {
    * (e.g. "5"). Omitted when unconstrained.
    */
   length?: number;
+  /**
+   * Letters the user already has, any order, deduped and uppercase: "SC".
+   * A soft constraint: answers are ranked by how many of these they contain
+   * and matching tiles are highlighted, nothing is filtered out. Applied
+   * client-side only, so it never changes what is fetched or cached.
+   */
+  letters?: string;
 }
 
 /**
  * Pattern input grammar (what the parser accepts before normalization):
- *   - Unknown letter: `?`, `_`, `.`, `-`, `*`   → `?`
- *   - Known letter:   a–z / A–Z                → uppercase
- *   - Digits only:    "10"                     → length=10, pattern omitted
+ *   - Letters only:   "sc"                     → letters="SC" (soft, any order)
+ *   - Any of `?` `_` `.` `-` `*` present       → positional pattern, e.g.
+ *                                                "sc_d." → pattern="SC?D?"
+ *   - Digits only:    "10"                     → length=10
  *   - Spaces / punctuation                     → stripped (multi-word answers
  *                                                are matched letters-only)
  * Anything else is a validation error, not a silent drop.
@@ -67,6 +75,11 @@ export interface Answer {
    * null  → request had no constraint
    */
   fitsPattern: boolean | null;
+  /**
+   * How many of `SolveRequest.letters` this answer contains (distinct letters).
+   * Undefined when no letters were given.
+   */
+  letterHits?: number;
   /** One-line "why": a short definition (Datamuse) or reasoning (Claude). */
   gloss?: string;
   /** Datamuse tags: "n", "v", "adj", "adv", "prop" (proper noun). */
@@ -154,7 +167,7 @@ export interface ProviderError {
 export interface SolveResult {
   request: SolveRequest;
   /**
-   * Deduped by `answer`, sorted: fitsPattern desc, score desc, length asc.
+   * Deduped by `answer`, sorted: fitsPattern desc, letterHits desc, score desc, length asc.
    * Capped at 24. Empty array is a valid, renderable result ("no matches").
    */
   answers: Answer[];
@@ -203,6 +216,7 @@ export type ReferenceProvider = Provider<Reference | null>;
 export interface HistoryEntry {
   query: string;
   pattern?: string;
+  letters?: string;
   /** Epoch ms of the most recent solve for this query+pattern. */
   at: number;
   /** Top answer at the time, for the history row preview. */
@@ -210,7 +224,7 @@ export interface HistoryEntry {
 }
 
 export interface CacheEntry {
-  /** `${query.toLowerCase()}|${pattern ?? ''}|${length ?? ''}` */
+  /** `${query.toLowerCase()}|${pattern ?? ''}|${length ?? ''}` — letters excluded, they're view-time only. */
   key: string;
   result: SolveResult;
   /** Epoch ms. Result cache TTL is 7 days; served stale when offline. */

@@ -25,6 +25,13 @@ describe('datamuse', () => {
     expect(a.find((x) => x.answer === 'EBB')!.fitsPattern).toBe(false);
   });
 
+  it('ranks by letter hits without filtering anything out', () => {
+    const a = mapAnswers(rows, { query: 'tide', letters: 'PA' });
+    expect(a.map((x) => x.answer)).toEqual(['NEAP', 'RIPCURRENT', 'EBB', 'FLOW']);
+    expect(a.map((x) => x.letterHits)).toEqual([2, 1, 0, 0]);
+    expect(a.every((x) => x.fitsPattern === null)).toBe(true);
+  });
+
   it('caps at 24', () => {
     const many = Array.from({ length: 40 }, (_, i) => ({ word: `w${i}x`.replace(/\d/g, (d) => 'abcdefghij'[+d]!), score: 40 - i }));
     expect(mapAnswers(many, { query: 'x' })).toHaveLength(24);

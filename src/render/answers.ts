@@ -8,9 +8,7 @@ export function skeletonAnswers(): string {
 }
 
 export function renderAnswers(answers: Answer[], req: SolveRequest, opts: { fromCache?: boolean; error?: ProviderError } = {}): string {
-  const constrained = Boolean(req.pattern || req.length);
-  const hits = answers.filter((a) => a.fitsPattern === true).length;
-  const head = `<h2>Answers ${answers.length ? `<span class="count">${constrained ? `${hits} of ${answers.length} fit` : answers.length}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}</h2>`;
+  const head = `<h2>Answers ${answers.length ? `<span class="count">${countLabel(answers, req)}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}</h2>`;
   let body: string;
   if (opts.error && !answers.length) {
     body = `<div class="notice bad">${esc(opts.error.message)}.</div>`;
@@ -20,6 +18,15 @@ export function renderAnswers(answers: Answer[], req: SolveRequest, opts: { from
     body = `<div class="answers">${answers.map((a) => row(a, req)).join('')}</div>`;
   }
   return `<section class="section" id="sec-answers">${head}${body}</section>`;
+}
+
+function countLabel(answers: Answer[], req: SolveRequest): string {
+  if (req.pattern || req.length) return `${answers.filter((a) => a.fitsPattern === true).length} of ${answers.length} fit`;
+  if (req.letters) {
+    const all = answers.filter((a) => a.letterHits === req.letters!.length).length;
+    return `${all} of ${answers.length} have ${req.letters.split('').join(' ')}`;
+  }
+  return String(answers.length);
 }
 
 function row(a: Answer, req: SolveRequest): string {
@@ -32,7 +39,7 @@ function row(a: Answer, req: SolveRequest): string {
         .replace(/[^A-Z]/g, '')
         .split('')
         .map((ch) => {
-          const hit = req.pattern?.[idx] === ch;
+          const hit = req.pattern ? req.pattern[idx] === ch : Boolean(req.letters?.includes(ch));
           idx++;
           return `<span class="tile${hit ? ' hit' : ''}">${ch}</span>`;
         })

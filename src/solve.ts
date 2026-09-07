@@ -6,6 +6,7 @@ import { dictionaryapi } from './providers/dictionaryapi';
 import { buildLinks } from './providers/links';
 import { wikipedia } from './providers/wikipedia';
 import { wiktionary } from './providers/wiktionary';
+import { rankAnswers } from './rank';
 import { getCached, putCached } from './store';
 
 export interface BuildError {
@@ -22,6 +23,7 @@ export function buildRequest(rawQuery: string, rawPattern = ''): SolveRequest | 
   const req: SolveRequest = { query };
   if (c.pattern) req.pattern = c.pattern;
   if (c.length) req.length = c.length;
+  if (c.letters) req.letters = c.letters;
   return req;
 }
 
@@ -55,7 +57,8 @@ async function fetchDefinition(req: SolveRequest, signal: AbortSignal, errors: P
 
 export async function solve(req: SolveRequest, signal: AbortSignal, on: SolveEvents): Promise<SolveResult> {
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
-  const cached = getCached(req, { allowStale: offline });
+  const cachedRaw = getCached(req, { allowStale: offline });
+  const cached = cachedRaw && { ...cachedRaw, request: req, answers: rankAnswers(cachedRaw.answers, req) };
   if (cached) {
     on.answers?.(cached.answers);
     on.definition?.(cached.definition);

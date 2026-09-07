@@ -52,8 +52,13 @@ Key invariants:
 
 - `Answer.answer` is grid form (`RIPCURRENT`), `Answer.display` is human form
   (`rip current`). Pattern matching and dedupe use grid form only.
-- `SolveRequest.pattern` is normalized to `[A-Z?]+`. Parser grammar is in the
-  contract file's doc comment.
+- The constraint field is always visible and has two modes. Plain letters
+  ("SC") are a **soft** constraint: nothing is filtered, answers are ranked by
+  how many of those letters they contain and matching tiles light up. Any
+  `?` (or `_ . - *`) switches to a **positional** pattern ("SC?D?") that
+  filters strictly and dims non-matches. Digits alone are a length. Letters
+  are applied client-side only and never change what is fetched or cached;
+  patterns and lengths go to Datamuse as `sp=`.
 - Partial failure is a normal state. Missing definition ≠ error. Provider
   errors are collected into `SolveResult.errors` and shown as a quiet inline
   notice, never a modal.

@@ -7,8 +7,8 @@ export function renderHistory(list: HistoryEntry[]): string {
     .slice(0, 12)
     .map(
       (h) =>
-        `<button type="button" data-q="${esc(h.query)}" data-p="${esc(h.pattern ?? '')}">${esc(h.query)}${
-          h.pattern ? `<code>${esc(h.pattern)}</code>` : ''
+        `<button type="button" data-q="${esc(h.query)}" data-p="${esc(h.pattern ?? h.letters ?? '')}">${esc(h.query)}${
+          h.pattern || h.letters ? `<code>${esc(h.pattern ?? h.letters ?? '')}</code>` : ''
         }</button>`,
     )
     .join('')}</div></section>`;

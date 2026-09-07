@@ -1,6 +1,7 @@
 import type { Answer, AnswerProvider, SolveRequest } from '../contract';
 import { fetchJson } from '../http';
-import { fits, toDatamuseSp, toGrid } from '../pattern';
+import { toDatamuseSp, toGrid } from '../pattern';
+import { rankAnswers } from '../rank';
 
 export interface DatamuseWord {
   word: string;
@@ -35,7 +36,7 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
       display: r.word,
       length: answer.length,
       score: Math.min(1, (r.score ?? 0) / max),
-      fitsPattern: fits(answer, req),
+      fitsPattern: null,
       gloss: def || undefined,
       partOfSpeech: tags.length ? tags : undefined,
       source: 'datamuse',
@@ -43,9 +44,7 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
     const prev = seen.get(answer);
     if (!prev || candidate.score > prev.score) seen.set(answer, { ...candidate, gloss: candidate.gloss ?? prev?.gloss });
   }
-  return [...seen.values()]
-    .sort((a, b) => Number(b.fitsPattern === true) - Number(a.fitsPattern === true) || b.score - a.score || a.length - b.length)
-    .slice(0, 24);
+  return rankAnswers([...seen.values()], req).slice(0, 24);
 }
 
 export const datamuse: AnswerProvider = {
