@@ -246,6 +246,15 @@ Single screen, portrait-first, everything reachable with one thumb.
 └──────────────────────────────┘
 ```
 
+Layout intent (one input, two jobs):
+
+- A short input (one or two words) that gets a dictionary entry reads as a
+  **word**: Meaning leads as a highlighted card, then About, then Answers
+  collapsed to three rows with "Show N more".
+- Anything else reads as a **clue**: Answers lead in full, then Meaning, About.
+- The section header carries "Show as clue" / "Show as word" to flip the guess
+  for the current result. Nothing is ever hidden, only reordered.
+
 Behavior:
 
 - Submit on Enter and on input blur if text changed. Debounce 300ms on typing
