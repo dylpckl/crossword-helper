@@ -64,21 +64,14 @@ export function clearCache(): void {
 
 // ---- settings ----
 export type Theme = 'system' | 'light' | 'dark';
-export type ResultOrder = 'auto' | 'manual';
 export type SearchPosition = 'top' | 'bottom';
-export type Layout = 'word' | 'clue';
-
 export interface Settings {
   theme: Theme;
   liveSearch: boolean;
-  /** 'auto' guesses word vs clue from the result; 'manual' shows a Clue/Word control. */
-  resultOrder: ResultOrder;
-  /** The manual choice, remembered between searches. Ignored when resultOrder is 'auto'. */
-  manualLayout: Layout;
   /** Where the search box sits: under the app bar, or docked in thumb reach. */
   searchPosition: SearchPosition;
 }
-export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false, resultOrder: 'auto', manualLayout: 'clue', searchPosition: 'top' };
+export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false, searchPosition: 'top' };
 export function getSettings(): Settings {
   return { ...DEFAULT_SETTINGS, ...read<Partial<Settings>>(SETTINGS_KEY, {}) };
 }

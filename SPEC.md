@@ -254,25 +254,13 @@ Single screen, portrait-first, everything reachable with one thumb.
 └──────────────────────────────┘
 ```
 
-Layout intent (one input, two jobs):
-
-- A short input (one or two words) that gets a dictionary entry reads as a
-  **word**: Meaning leads as a highlighted card, then About, then Answers
-  collapsed to three rows with "Show N more".
-- Anything else reads as a **clue**: Answers lead in full, then Meaning, About.
-- The section header carries "Show as clue" / "Show as word" to flip the guess
-  for the current result. Nothing is ever hidden, only reordered.
-- Settings offers **Search box: Top or Bottom**. Bottom docks only the query in
-  thumb reach; the letters field and length row stay with the answers they act
-  on, and the view pads itself so the last row clears the dock.
-- Settings offers **Result order: Auto or Manual**. Manual replaces the guess
-  and the header link with a Clue / Word control under the search box, and the
-  choice is remembered between searches.
-
-Shell: a thin app bar with the name on the left and a cog on the right. The cog
-opens a bottom sheet holding settings and about together; there is no navigation,
-because the solver is the app. Diagnostics is the one separate view, reached from
-"Check data sources" at the bottom of the sheet, with a back arrow in the bar.
+Sections keep a fixed order for every search: **Meaning, Answers, About**.
+Meaning is a disclosure. Open, it is the full card and the answer list below is
+capped at three rows so About stays reachable; collapsed, it is a single tappable
+line carrying the term and first sense, and the answers show in full. The app
+guesses the state — open when a short input got a definition — and a tap on the
+header overrides it. Because the order never changes, nothing reflows when the
+definition lands, and there is no separate control to learn.
 
 Answer length is a segmented row under the Answers header: "All" followed by one
 segment per length that actually has answers. Counts stay in the accessible label

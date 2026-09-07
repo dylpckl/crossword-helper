@@ -7,7 +7,7 @@ import { renderReference, skeletonReference } from '../render/reference';
 import { esc } from '../render/util';
 import { rankAnswers } from '../rank';
 import { buildRequest, isBuildError, solve } from '../solve';
-import { getHistory, getSettings, pushHistory, saveSettings, type Layout } from '../store';
+import { getHistory, getSettings, pushHistory } from '../store';
 import { buildLinks } from '../providers/links';
 import type { Shell } from './shell';
 
@@ -46,10 +46,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
         </label>
         <span class="hint" id="phint"></span>
       </div>
-      <div class="modectl" id="modeCtl" role="group" aria-label="Show results as" hidden>
-        <button type="button" data-mode="clue">Clue</button>
-        <button type="button" data-mode="word">Word</button>
-      </div>
     </div>
     <div id="out"></div>
     <div id="recent"></div>`;
@@ -57,7 +53,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   const $ = <T extends HTMLElement>(id: string) => view.querySelector<T>(`#${id}`)!;
   const q = $<HTMLInputElement>('q'), p = $<HTMLInputElement>('p'), out = $('out'), form = $<HTMLFormElement>('form');
   const phint = $('phint'), formError = $('formError'), clearBtn = $('clear'), pclear = $<HTMLButtonElement>('pclear');
-  const modeCtl = $('modeCtl');
   const sections = { answers: '', meaning: '', about: '' };
 
   let ctl: AbortController | null = null;
@@ -65,64 +60,46 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let liveTimer: number | undefined;
 
   /**
-   * Layout intent: a word input leads with Meaning and collapses Answers; a
-   * clue leads with Answers. In 'auto' order the app guesses from the result
-   * and offers a header link to flip it for the current search. In 'manual'
-   * order the Clue/Word control decides and is remembered between searches.
-   * `expanded` is the collapsed answer list opened.
+   * Whether the Meaning section is open. Sections keep a fixed order —
+   * Meaning, Answers, About — so nothing reflows when the definition lands.
+   * The app guesses from the result and the user overrides by tapping the
+   * header; the same state collapses answers, since an open definition means
+   * the word is the point.
    */
-  let override: Layout | null = null;
+  let meaningOpen = true;
+  /** "Show N more" on the answers, independent of the disclosure. */
   let expanded = false;
-  /** Length chip selection. View-only, reset on each new search. */
+  /** Length segment selection. View-only, reset on each new search. */
   let lengthFilter: number | null = null;
 
-  function isManual(): boolean {
-    return getSettings().resultOrder === 'manual';
-  }
-  function guessLayout(query: string, definition: SolveResult['definition'] | undefined): Layout {
+  function guessOpen(query: string, definition: SolveResult['definition'] | undefined): boolean {
     const short = query.split(' ').length <= 2;
-    if (definition === undefined) return short ? 'word' : 'clue'; // still loading: provisional
-    return short && definition ? 'word' : 'clue';
-  }
-  function layout(): Layout {
-    if (isManual()) return getSettings().manualLayout;
-    if (override) return override;
-    return guessLayout(q.value.trim().replace(/\s+/g, ' '), current ? current.definition : undefined);
-  }
-  /** In manual order the control is the affordance, so no header link. */
-  function swapLabel(): string {
-    if (isManual()) return '';
-    if (layout() === 'word') return 'Show as clue';
-    return current?.definition ? 'Show as word' : '';
-  }
-  function applySettings() {
-    document.body.classList.toggle('search-bottom', getSettings().searchPosition === 'bottom');
-    const manual = isManual();
-    modeCtl.hidden = !manual;
-    if (manual) {
-      const m = getSettings().manualLayout;
-      for (const b of modeCtl.querySelectorAll<HTMLButtonElement>('button')) {
-        b.setAttribute('aria-pressed', String(b.dataset.mode === m));
-      }
-    }
-    repaintAll();
+    if (definition === undefined) return short; // still loading: provisional
+    return short && Boolean(definition);
   }
 
   function paint() {
-    out.innerHTML =
-      layout() === 'word'
-        ? sections.meaning + sections.about + sections.answers
-        : sections.answers + sections.meaning + sections.about;
+    out.innerHTML = sections.meaning + sections.answers + sections.about;
   }
-  /** Re-render every section from `current` using the present layout. */
+  /** Re-render every section from `current`. */
   function repaintAll() {
     if (!current) return;
-    const r = current, req = r.request, word = layout() === 'word';
+    const r = current, req = r.request;
     const datamuseErr = r.errors.find((e) => e.provider === 'Datamuse');
-    sections.answers = renderAnswers(r.answers, req, { fromCache: r.fromCache, error: datamuseErr, compact: word && !expanded, swap: word ? '' : swapLabel(), lengthFilter });
-    sections.meaning = renderDefinition(r.definition, req.query, r.errors, { hero: word, swap: word ? swapLabel() : '' });
+    sections.meaning = renderDefinition(r.definition, req.query, r.errors, { open: meaningOpen });
+    sections.answers = renderAnswers(r.answers, req, {
+      fromCache: r.fromCache,
+      error: datamuseErr,
+      compact: meaningOpen && !expanded,
+      lengthFilter,
+    });
     sections.about = renderReference(r.reference, r.links, req.query, r.errors);
     paint();
+  }
+
+  function applySettings() {
+    document.body.classList.toggle('search-bottom', getSettings().searchPosition === 'bottom');
+    repaintAll();
   }
   function refreshHistory() {
     $('recent').innerHTML = renderHistory(getHistory());
@@ -171,19 +148,24 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl?.abort();
     ctl = new AbortController();
     const mine = ctl;
-    override = null;
     expanded = false;
     lengthFilter = null;
     current = null;
     sections.answers = skeletonAnswers();
     sections.meaning = skeletonDefinition();
     sections.about = skeletonReference();
+    meaningOpen = guessOpen(req.query, undefined);
     paint();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const result = await solve(req, mine.signal, {
       answers: (a) => { if (mine.signal.aborted) return; sections.answers = renderAnswers(a, req); paint(); },
-      definition: (d) => { if (mine.signal.aborted) return; sections.meaning = renderDefinition(d, req.query); paint(); },
+      definition: (d) => {
+        if (mine.signal.aborted) return;
+        meaningOpen = guessOpen(req.query, d);
+        sections.meaning = renderDefinition(d, req.query, [], { open: meaningOpen });
+        paint();
+      },
       reference: (r) => { if (mine.signal.aborted) return; sections.about = renderReference(r, buildLinks(req.query, r !== null), req.query); paint(); },
       done: (r) => {
         if (mine.signal.aborted) return;
@@ -235,7 +217,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       );
       return;
     }
-    if (t.closest('[data-swap]')) { override = layout() === 'word' ? 'clue' : 'word'; repaintAll(); return; }
+    if (t.closest('[data-toggle-meaning]')) { meaningOpen = !meaningOpen; repaintAll(); return; }
     if (t.closest('[data-expand-answers]')) { expanded = true; repaintAll(); return; }
     const len = t.closest<HTMLElement>('[data-len]');
     if (len) {
@@ -247,12 +229,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
     if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');
-  });
-  modeCtl.addEventListener('click', (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-mode]');
-    if (!b) return;
-    saveSettings({ manualLayout: b.dataset.mode as Layout });
-    applySettings();
   });
   $('recent').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-q]');

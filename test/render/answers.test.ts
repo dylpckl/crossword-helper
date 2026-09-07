@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Answer } from '../../src/contract';
 import { lengthCounts, renderAnswers } from '../../src/render/answers';
+import { renderDefinition } from '../../src/render/definition';
 
 const make = (display: string, score = 1): Answer => {
   const answer = display.toUpperCase().replace(/[^A-Z]/g, '');
@@ -50,5 +51,40 @@ describe('length chips', () => {
     const html = renderAnswers(ANSWERS, { query: 'x' }, { compact: true, lengthFilter: 4 });
     expect(html).toContain('data-answer="EZRA"');
     expect(html).not.toContain('data-expand-answers');
+  });
+});
+
+describe('meaning disclosure', () => {
+  const DEF = {
+    term: 'tide',
+    phonetic: '/taɪd/',
+    senses: [
+      { partOfSpeech: 'n.', definition: 'The periodic rise and fall of the sea.' },
+      { partOfSpeech: 'n.', definition: 'A powerful surge of feeling.' },
+    ],
+    source: 'dictionaryapi' as const,
+  };
+
+  it('shows the full card when open', () => {
+    const html = renderDefinition(DEF, 'tide', [], { open: true });
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('class="card"');
+    expect(html).toContain('The periodic rise and fall of the sea.');
+    expect(html).not.toContain('class="peek"');
+  });
+
+  it('collapses to one tappable line carrying the first sense', () => {
+    const html = renderDefinition(DEF, 'tide', [], { open: false });
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('class="peek"');
+    expect(html).toContain('The periodic rise and fall of the sea.');
+    expect(html).not.toContain('A powerful surge of feeling.');
+    expect(html).not.toContain('class="card"');
+  });
+
+  it('offers no control when there is nothing to disclose', () => {
+    const html = renderDefinition(null, 'out of the country');
+    expect(html).not.toContain('data-toggle-meaning');
+    expect(html).toContain('No dictionary entry');
   });
 });
