@@ -36,7 +36,10 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       </form>
       <div class="form-error" id="formError" hidden></div>
       </div>
-      <div class="constraints">
+      <!-- Letters/pattern input, parked: hidden in the UI while the idea is
+           reconsidered. The parser, ranking and highlighting all still work,
+           so removing this attribute brings it back. -->
+      <div class="constraints" hidden>
         <label class="pattern">
           <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="4" height="4"/><rect x="7" y="1" width="4" height="4"/><rect x="1" y="7" width="4" height="4"/><rect x="7" y="7" width="4" height="4"/></svg>
           <input id="p" type="text" placeholder="Letters you have" aria-label="Letters you have, or a ? pattern" maxlength="30" autocapitalize="characters" autocomplete="off" spellcheck="false">
