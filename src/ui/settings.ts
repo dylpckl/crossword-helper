@@ -41,7 +41,7 @@ export function mountAbout(view: HTMLElement, version: string) {
   view.innerHTML = `<div class="about-page"><h2 class="page">About</h2>
     <p class="lead">Type a word or phrase. Clue Solver treats it as a crossword clue and lists likely answers as letter tiles, then shows what it means.</p>
     <p>Type letters you already have to rank answers that contain them, or a pattern like <code>SC?D?</code> to match by position. Tap an answer to copy it, hold one to look it up.</p>
-    <p>The number beside each answer is Datamuse's relevance score for that clue, higher is better. It only means something within one list, so it is never a percentage of certainty.</p>
+    <p>Answers are ordered by how well Datamuse thinks they match the clue, best first.</p>
     <p>Answers come from Datamuse. Definitions come from the Free Dictionary API and Wiktionary. Summaries come from Wikipedia. Nothing you type is sent anywhere else, and no account is needed.</p>
     <p>Clue Solver is free and has no ads. If it helps you finish a puzzle, you can <a href="${DONATE_URL}" target="_blank" rel="noopener">buy me a coffee</a>.</p>
     <dl><dt>Version</dt><dd>${version}</dd><dt>Build</dt><dd><a href="${REPO_URL}/commit/${COMMIT}" target="_blank" rel="noopener">${COMMIT}</a></dd><dt>Source</dt><dd><a href="${REPO_URL}" target="_blank" rel="noopener">github.com/dylpckl/crossword-helper</a></dd></dl>

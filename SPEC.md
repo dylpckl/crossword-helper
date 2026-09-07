@@ -225,10 +225,10 @@ Single screen, portrait-first, everything reachable with one thumb.
 │ └────────┘                   │
 │                              │
 │  ANSWERS                     │
-│  T I D E              56,321 │  ← letter tiles, Datamuse score
+│  T I D E                     │  ← letter tiles; score orders, isn't shown
 │  a periodic rise and fall…   │  ← gloss, one line
-│  E D D Y              48,210 │
-│  R I P C U R R E N T  30,200 │  (dimmed if !fitsPattern)
+│  E D D Y                     │
+│  R I P C U R R E N T         │  (dimmed if !fitsPattern)
 │                              │
 │  MEANING                     │
 │  ocean current  /ˈoʊʃən/  ▶  │  ← audio on tap
