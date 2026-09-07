@@ -166,9 +166,8 @@ a { color: var(--blue); }
 .gap { width: 8px; }
 .tiles.long .gap { width: 5px; }
 .len { margin-left: 6px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.score { grid-area: score; display: flex; gap: 3px; align-self: center; }
-.score i { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); }
-.score i.on { background: var(--blue); }
+.rel { grid-area: score; align-self: center; width: 44px; height: 4px; border-radius: 2px; background: var(--rule-2); overflow: hidden; }
+.rel i { display: block; height: 100%; background: var(--blue); border-radius: 2px; }
 .gloss { grid-area: gloss; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gloss .pos { font-style: italic; color: var(--ink-3); margin-right: 4px; }
 

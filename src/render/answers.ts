@@ -47,12 +47,13 @@ function row(a: Answer, req: SolveRequest): string {
       return letters + (wi < words.length - 1 ? '<span class="gap"></span>' : '');
     })
     .join('');
-  const dots = [1, 2, 3, 4, 5].map((i) => `<i class="${a.score >= i / 5 - 0.1 ? 'on' : ''}"></i>`).join('');
+  const pct = Math.round(a.score * 100);
+  const rel = a.rawScore != null ? `Relevance ${a.rawScore.toLocaleString()} (${pct}% of the top answer)` : `Relevance ${pct}% of the top answer`;
   const pos = a.partOfSpeech?.[0];
   return `<button class="row${a.fitsPattern === false ? ' dim' : ''}" data-answer="${a.answer}" data-display="${esc(a.display)}"
       aria-label="${esc(a.display)}, ${a.length} letters. Tap to copy, hold to look up.">
     <span class="tiles${a.length >= 9 ? ' long' : ''}">${tiles}<span class="len">${a.length}</span></span>
-    <span class="score" aria-hidden="true">${dots}</span>
+    <span class="rel" role="img" aria-label="${rel}" title="${rel}"><i style="width:${pct}%"></i></span>
     ${a.gloss ? `<span class="gloss">${pos ? `<span class="pos">${esc(pos)}.</span>` : ''}${esc(a.gloss)}</span>` : ''}
   </button>`;
 }
