@@ -71,6 +71,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
    */
   let override: Layout | null = null;
   let expanded = false;
+  /** Length chip selection. View-only, reset on each new search. */
+  let lengthFilter: number | null = null;
 
   function isManual(): boolean {
     return getSettings().resultOrder === 'manual';
@@ -114,7 +116,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     if (!current) return;
     const r = current, req = r.request, word = layout() === 'word';
     const datamuseErr = r.errors.find((e) => e.provider === 'Datamuse');
-    sections.answers = renderAnswers(r.answers, req, { fromCache: r.fromCache, error: datamuseErr, compact: word && !expanded, swap: word ? '' : swapLabel() });
+    sections.answers = renderAnswers(r.answers, req, { fromCache: r.fromCache, error: datamuseErr, compact: word && !expanded, swap: word ? '' : swapLabel(), lengthFilter });
     sections.meaning = renderDefinition(r.definition, req.query, r.errors, { hero: word, swap: word ? swapLabel() : '' });
     sections.about = renderReference(r.reference, r.links, req.query, r.errors);
     paint();
@@ -168,6 +170,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     const mine = ctl;
     override = null;
     expanded = false;
+    lengthFilter = null;
     current = null;
     sections.answers = skeletonAnswers();
     sections.meaning = skeletonDefinition();
@@ -231,6 +234,13 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     }
     if (t.closest('[data-swap]')) { override = layout() === 'word' ? 'clue' : 'word'; repaintAll(); return; }
     if (t.closest('[data-expand-answers]')) { expanded = true; repaintAll(); return; }
+    const len = t.closest<HTMLElement>('[data-len]');
+    if (len) {
+      const n = Number(len.dataset.len);
+      lengthFilter = lengthFilter === n ? null : n;
+      repaintAll();
+      return;
+    }
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
     if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');

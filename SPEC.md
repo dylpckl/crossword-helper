@@ -271,6 +271,12 @@ opens a bottom sheet holding settings and about together; there is no navigation
 because the solver is the app. Diagnostics is the one separate view, reached from
 "Check data sources" at the bottom of the sheet, with a back arrow in the bar.
 
+Answer length is a chip row under the Answers header: one chip per length that
+actually has answers, each with a count, tap to filter and tap again to clear.
+It is a view-time filter over answers already fetched, so it costs no request
+and touches neither the quota nor the cache key. The row is hidden when every
+answer is the same length, and a selection that matches nothing is ignored.
+
 Behavior:
 
 - Submit on Enter and on input blur if text changed. Debounce 300ms on typing
