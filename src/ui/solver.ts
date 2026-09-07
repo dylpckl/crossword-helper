@@ -1,6 +1,7 @@
 import type { SolveResult, SolveRequest } from '../contract';
 import { parsePattern } from '../pattern';
 import { renderAnswers, skeletonAnswers } from '../render/answers';
+import { renderEmpty } from '../render/empty';
 import { renderHistory } from '../render/history';
 import { renderMeaning, skeletonMeaning } from '../render/meaning';
 import { esc } from '../render/util';
@@ -93,7 +94,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   }
 
   function paint() {
-    out.innerHTML = sections.meaning + sections.answers;
+    const body = sections.meaning + sections.answers;
+    out.innerHTML = body || renderEmpty(getHistory().length === 0);
   }
   /** Swap one section in place, so the others keep their DOM and their state. */
   function paintAnswers() {
@@ -301,6 +303,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       withTransition(paintAnswers);
       return;
     }
+    const eg = t.closest<HTMLElement>('[data-example]');
+    if (eg) { setQuery(eg.dataset.example!, '', true); return; }
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
     if (t.closest('[data-expand]')) t.closest('.block')?.classList.toggle('expanded');
@@ -321,5 +325,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   refreshHistory();
   updateHint();
   applySettings();
+  paint();
   return { setQuery, refreshHistory, applySettings };
 }

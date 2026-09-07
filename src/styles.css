@@ -214,6 +214,20 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .notice { color: var(--ink-3); font-size: 13px; padding: 6px 0 0; }
 .notice.bad { color: var(--bad); }
 
+/* empty state */
+.empty-state { padding: 42px 0 24px; text-align: center; }
+.empty-state .motif { display: flex; justify-content: center; gap: 4px; margin-bottom: 22px; opacity: .55; }
+.empty-state .motif .tile { width: 32px; height: 34px; font-size: 16px; }
+.empty-state h2 { font: 500 21px/1.25 Georgia, "Times New Roman", serif; letter-spacing: -.01em; margin: 0 0 8px; color: var(--ink); text-transform: none; }
+.empty-state p { margin: 0 auto; max-width: 30ch; color: var(--ink-3); font-size: 14.5px; line-height: 1.45; }
+.examples { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 24px; }
+.examples .eyebrow { margin-bottom: 0; }
+.examples button {
+  border: 1px solid var(--rule); background: transparent; color: var(--ink-2); border-radius: 999px;
+  padding: 0 16px; min-height: 40px; font-size: 14px;
+}
+.examples button:active { background: var(--rule-2); }
+
 /* answers */
 .lens { display: flex; overflow-x: auto; scrollbar-width: none; padding: 1px 0 12px; }
 .lens::-webkit-scrollbar { display: none; }
