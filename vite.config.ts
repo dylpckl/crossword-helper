@@ -50,6 +50,22 @@ export default defineConfig({
           rt(/^https:\/\/en\.wiktionary\.org\/api\//, 'api-dict', 30),
           rt(/^https:\/\/en\.wikipedia\.org\/(api|w)\//, 'api-wiki', 30),
           {
+            // The stylesheet changes rarely; revalidate quietly in the background.
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\//,
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'font-css', expiration: { maxEntries: 10, maxAgeSeconds: 365 * 86400 } },
+          },
+          {
+            // Font files are immutable, so cache first and keep them for a year.
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'font-files',
+              expiration: { maxEntries: 20, maxAgeSeconds: 365 * 86400 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/upload\.wikimedia\.org\//,
             handler: 'CacheFirst',
             options: { cacheName: 'img', expiration: { maxEntries: 50, maxAgeSeconds: 30 * 86400 } },
