@@ -1,6 +1,6 @@
 [
   {"word":"ebb","score":56321,"tags":["n","v","f:8.2"],"defs":["n\tthe movement of the tide out to sea","v\tflow back or recede"]},
-  {"word":"flow","score":48210,"tags":["n","v","f:70.1"],"defs":["n\tthe rise of the tide"]},
+  {"word":"flow","score":48210,"tags":["results_type:backfill_gloss","n","v","f:70.1"],"defs":["n\tthe rise of the tide"]},
   {"word":"rip current","score":30200,"tags":["n","f:0.3"],"defs":["n\ta strong, narrow flow of water moving away from shore"]},
   {"word":"neap","score":22000,"tags":["n","f:0.4"]},
   {"word":"Ebb","score":10,"tags":["prop"]},

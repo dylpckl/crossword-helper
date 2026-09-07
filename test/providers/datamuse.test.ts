@@ -14,6 +14,7 @@ describe('datamuse', () => {
     const a = mapAnswers(rows, { query: 'tide' });
     expect(a.map((x) => x.answer)).toEqual(['EBB', 'FLOW', 'RIPCURRENT', 'NEAP']);
     expect(a[0]).toMatchObject({ display: 'ebb', length: 3, score: 1, rawScore: 56321, fitsPattern: null, gloss: 'the movement of the tide out to sea', partOfSpeech: ['n', 'v'], source: 'datamuse' });
+    expect(a[1]!.partOfSpeech).toEqual(['n', 'v']); // internal results_type tag dropped
     expect(a[2]!.length).toBe(10);
     expect(a[3]!.gloss).toBeUndefined();
   });

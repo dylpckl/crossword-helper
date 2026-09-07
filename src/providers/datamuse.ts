@@ -11,6 +11,8 @@ export interface DatamuseWord {
 }
 
 const BASE = 'https://api.datamuse.com/words';
+/** Datamuse mixes internal markers (f:1.2, results_type:…) into tags; only these are parts of speech. */
+const POS_TAGS = new Set(['n', 'v', 'adj', 'adv', 'prop', 'u']);
 export const NAME = 'Datamuse';
 
 export function buildUrls(req: SolveRequest): string[] {
@@ -29,7 +31,7 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
     if (!r.word) continue;
     const answer = toGrid(r.word);
     if (!answer) continue;
-    const tags = (r.tags ?? []).filter((t) => !t.startsWith('f:') && t !== 'syn');
+    const tags = (r.tags ?? []).filter((t) => POS_TAGS.has(t));
     const def = r.defs?.[0]?.split('\t').pop()?.trim();
     const candidate: Answer = {
       answer,

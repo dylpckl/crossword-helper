@@ -150,8 +150,8 @@ a { color: var(--blue); }
 /* answers */
 .answers { display: flex; flex-direction: column; }
 .row {
-  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "tiles score" "gloss gloss";
-  gap: 4px 10px; padding: 11px 0; border-top: 1px solid var(--rule-2); text-align: left;
+  display: grid; grid-template-columns: 1fr; grid-template-areas: "tiles" "gloss";
+  gap: 6px; padding: 14px 0; border-top: 1px solid var(--rule-2); text-align: left;
   background: transparent; border-left: 0; border-right: 0; border-bottom: 0; width: 100%; color: inherit; user-select: none;
 }
 .row:first-child { border-top: 0; }
@@ -169,8 +169,7 @@ a { color: var(--blue); }
 .gap { width: 8px; }
 .tiles.long .gap { width: 5px; }
 .len { margin-left: 6px; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.num { grid-area: score; align-self: center; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.gloss { grid-area: gloss; font-size: 13.5px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gloss { grid-area: gloss; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
 .gloss .pos { font-style: italic; color: var(--ink-3); margin-right: 4px; }
 
 /* meaning */
