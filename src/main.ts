@@ -3,10 +3,10 @@ import { registerSW } from 'virtual:pwa-register';
 import { mountShell, type ViewId } from './ui/shell';
 import { mountSolver } from './ui/solver';
 import { mountDiagnostics } from './ui/diagnostics';
-import { applyTheme, mountAbout, mountSettings } from './ui/settings';
+import { applyTheme, mountSheet } from './ui/sheet';
 import { getSettings } from './store';
 
-const VIEWS: ViewId[] = ['solver', 'diagnostics', 'settings', 'about'];
+const VIEWS: ViewId[] = ['solver', 'diagnostics'];
 
 applyTheme(getSettings().theme);
 
@@ -14,8 +14,7 @@ const app = document.getElementById('app')!;
 const shell = mountShell(app);
 const solver = mountSolver(shell.views.solver, shell);
 mountDiagnostics(shell.views.diagnostics);
-mountSettings(shell.views.settings, () => { solver.refreshHistory(); solver.applySettings(); });
-mountAbout(shell.views.about);
+mountSheet(shell, () => { solver.refreshHistory(); solver.applySettings(); });
 
 // Views raise toasts as bubbling events so they don't need the shell.
 app.addEventListener('toast', (e) => shell.toast((e as CustomEvent<string>).detail));
