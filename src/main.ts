@@ -15,7 +15,7 @@ const app = document.getElementById('app')!;
 const shell = mountShell(app, VERSION);
 const solver = mountSolver(shell.views.solver, shell);
 mountDiagnostics(shell.views.diagnostics);
-mountSettings(shell.views.settings, () => solver.refreshHistory());
+mountSettings(shell.views.settings, () => { solver.refreshHistory(); solver.applySettings(); });
 mountAbout(shell.views.about, VERSION);
 
 // Views raise toasts as bubbling events so they don't need the shell.

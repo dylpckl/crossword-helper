@@ -64,11 +64,18 @@ export function clearCache(): void {
 
 // ---- settings ----
 export type Theme = 'system' | 'light' | 'dark';
+export type ResultOrder = 'auto' | 'manual';
+export type Layout = 'word' | 'clue';
+
 export interface Settings {
   theme: Theme;
   liveSearch: boolean;
+  /** 'auto' guesses word vs clue from the result; 'manual' shows a Clue/Word control. */
+  resultOrder: ResultOrder;
+  /** The manual choice, remembered between searches. Ignored when resultOrder is 'auto'. */
+  manualLayout: Layout;
 }
-export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false };
+export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false, resultOrder: 'auto', manualLayout: 'clue' };
 export function getSettings(): Settings {
   return { ...DEFAULT_SETTINGS, ...read<Partial<Settings>>(SETTINGS_KEY, {}) };
 }

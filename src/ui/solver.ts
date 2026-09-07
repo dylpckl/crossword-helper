@@ -7,13 +7,15 @@ import { renderReference, skeletonReference } from '../render/reference';
 import { esc } from '../render/util';
 import { rankAnswers } from '../rank';
 import { buildRequest, isBuildError, solve } from '../solve';
-import { getHistory, getSettings, pushHistory } from '../store';
+import { getHistory, getSettings, pushHistory, saveSettings, type Layout } from '../store';
 import { buildLinks } from '../providers/links';
 import type { Shell } from './shell';
 
 export interface Solver {
   setQuery(q: string, pattern?: string, submit?: boolean): void;
   refreshHistory(): void;
+  /** Re-read settings that affect the solver view (result order). */
+  applySettings(): void;
 }
 
 export function mountSolver(view: HTMLElement, shell: Shell): Solver {
@@ -41,6 +43,10 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
         </label>
         <span class="hint" id="phint"></span>
       </div>
+      <div class="modectl" id="modeCtl" role="group" aria-label="Show results as" hidden>
+        <button type="button" data-mode="clue">Clue</button>
+        <button type="button" data-mode="word">Word</button>
+      </div>
       <div class="form-error" id="formError" hidden></div>
     </div>
     <div id="out"></div>
@@ -49,6 +55,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   const $ = <T extends HTMLElement>(id: string) => view.querySelector<T>(`#${id}`)!;
   const q = $<HTMLInputElement>('q'), p = $<HTMLInputElement>('p'), out = $('out'), form = $<HTMLFormElement>('form');
   const phint = $('phint'), formError = $('formError'), clearBtn = $('clear'), pclear = $<HTMLButtonElement>('pclear');
+  const modeCtl = $('modeCtl');
   const sections = { answers: '', meaning: '', about: '' };
 
   let ctl: AbortController | null = null;
@@ -56,27 +63,44 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let liveTimer: number | undefined;
 
   /**
-   * Layout intent. A short input with a dictionary entry reads as a word:
-   * Meaning leads, Answers are collapsed. Anything else reads as a clue.
-   * `override` is the user's flip for the current result; `expanded` is the
-   * collapsed answer list opened.
+   * Layout intent: a word input leads with Meaning and collapses Answers; a
+   * clue leads with Answers. In 'auto' order the app guesses from the result
+   * and offers a header link to flip it for the current search. In 'manual'
+   * order the Clue/Word control decides and is remembered between searches.
+   * `expanded` is the collapsed answer list opened.
    */
-  type Layout = 'word' | 'clue';
   let override: Layout | null = null;
   let expanded = false;
 
+  function isManual(): boolean {
+    return getSettings().resultOrder === 'manual';
+  }
   function guessLayout(query: string, definition: SolveResult['definition'] | undefined): Layout {
     const short = query.split(' ').length <= 2;
     if (definition === undefined) return short ? 'word' : 'clue'; // still loading: provisional
     return short && definition ? 'word' : 'clue';
   }
   function layout(): Layout {
+    if (isManual()) return getSettings().manualLayout;
     if (override) return override;
     return guessLayout(q.value.trim().replace(/\s+/g, ' '), current ? current.definition : undefined);
   }
+  /** In manual order the control is the affordance, so no header link. */
   function swapLabel(): string {
+    if (isManual()) return '';
     if (layout() === 'word') return 'Show as clue';
     return current?.definition ? 'Show as word' : '';
+  }
+  function applySettings() {
+    const manual = isManual();
+    modeCtl.hidden = !manual;
+    if (manual) {
+      const m = getSettings().manualLayout;
+      for (const b of modeCtl.querySelectorAll<HTMLButtonElement>('button')) {
+        b.setAttribute('aria-pressed', String(b.dataset.mode === m));
+      }
+    }
+    repaintAll();
   }
 
   function paint() {
@@ -211,6 +235,12 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
     if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');
   });
+  modeCtl.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-mode]');
+    if (!b) return;
+    saveSettings({ manualLayout: b.dataset.mode as Layout });
+    applySettings();
+  });
   $('recent').addEventListener('click', (e) => {
     const b = (e.target as HTMLElement).closest<HTMLElement>('button[data-q]');
     if (b) setQuery(b.dataset.q!, b.dataset.p ?? '', true);
@@ -226,5 +256,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
 
   refreshHistory();
   updateHint();
-  return { setQuery, refreshHistory };
+  applySettings();
+  return { setQuery, refreshHistory, applySettings };
 }

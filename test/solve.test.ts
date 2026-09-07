@@ -50,7 +50,9 @@ describe('solve', () => {
     expect(r.reference!.title).toBe('Tide');
     expect(r.links.map((l) => l.label)).toEqual(['Wordplays', 'Google', 'DuckDuckGo']);
     expect(r.errors).toEqual([]);
-    expect(fetchMock).toHaveBeenCalledTimes(4); // both dictionaries run in parallel
+    // Datamuse, Free Dictionary, Wikipedia, and Wiktionary twice: its 404 on the
+    // lowercase entry triggers the title-cased retry.
+    expect(fetchMock).toHaveBeenCalledTimes(5);
     expect(getCached(req)!.answers).toHaveLength(r.answers.length);
 
     // Same query with letters hits the cache and is re-ranked, no fetch.

@@ -28,9 +28,26 @@ export function truncate(text: string, max = MAX_EXTRACT): string {
   return (end > max * 0.5 ? cut.slice(0, end + 1) : cut.trimEnd() + '…').trim();
 }
 
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * Wikipedia redirects can land far from the query: "Hasten" redirects to the
+ * Saudi national anthem, whose English title opens with that word. Accept the
+ * page only when the query shows up in its title or its lead sentence, where
+ * aliases live ("New York, often called ... or simply NYC, is ..."). A missing
+ * card is better than a confidently wrong one; the Wikipedia search link stays
+ * in the links row either way.
+ */
+export function isRelevant(title: string, extract: string, query: string): boolean {
+  const q = norm(query);
+  if (!q) return false;
+  return norm(title).includes(q) || norm(extract.slice(0, 180)).includes(q);
+}
+
 export function mapReference(s: WikiSummary, query: string): Reference | null {
   if (!s.title || !s.extract) return null;
   if (s.type && !['standard', 'disambiguation'].includes(s.type)) return null;
+  if (!isRelevant(s.title, s.extract, query)) return null;
   const url = s.content_urls?.mobile?.page ?? s.content_urls?.desktop?.page ?? `https://en.wikipedia.org/wiki/${encodeURIComponent(titleCase(query))}`;
   return {
     title: s.title,
