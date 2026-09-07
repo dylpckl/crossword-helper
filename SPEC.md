@@ -116,8 +116,8 @@ Mapping: take entry `[0]`; `phonetic` from `phonetic` or first `phonetics[].text
 `audioUrl` from first non-empty `phonetics[].audio`; flatten `meanings[]` ×
 `definitions[]` into `Sense[]`, cap 6; `sourceUrl = sourceUrls[0]`.
 
-Caveats: community-run, occasionally slow or 5xx. Mostly single words. Treat
-any non-200/404 as a soft failure and fall through to Wiktionary.
+Caveats: community-run, occasionally slow or 5xx. Mostly single words. Runs in
+parallel with Wiktionary rather than ahead of it, so a stall costs nothing.
 
 ### 3.3 Wiktionary REST → `Definition | null` (fallback)
 
@@ -128,7 +128,9 @@ GET https://en.wiktionary.org/api/rest_v1/page/definition/{query}
 - 200: `{ en: [{ partOfSpeech, definitions: [{ definition (HTML), examples?: [HTML] }] }] }`
 - 404 → `null`.
 
-Strip HTML to text before it reaches the contract. Better than dictionaryapi
+Entries are case-sensitive: `Big_Apple` exists where `big_apple` 404s, so a
+404 is retried title-cased before giving up. Strip HTML to text before it
+reaches the contract. Better than dictionaryapi
 for phrases ("rip current", "in the black") and slang. Send header
 `Api-User-Agent: clue-solver/1.0 (contact url)` — Wikimedia asks for it.
 
@@ -143,6 +145,12 @@ GET https://en.wikipedia.org/api/rest_v1/page/summary/{Title_Case_Query}?redirec
 
 Mapping is direct. `kind` = `type === 'disambiguation' ? 'disambiguation' : 'standard'`.
 Truncate `extract` to ~400 chars at a sentence boundary.
+
+Redirects can land far from the query: "Hasten" redirects to the Saudi national
+anthem, whose English title opens with that word. The page is kept only when the
+query appears in its title or its lead sentence, where aliases live ("New York,
+often called ... or simply NYC, is ..."). A missing card beats a confidently
+wrong one, and the Wikipedia search link stays in the links row regardless.
 
 Optional second call when summary 404s, to offer suggestions:
 `https://en.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=5&format=json&origin=*`
@@ -254,6 +262,9 @@ Layout intent (one input, two jobs):
 - Anything else reads as a **clue**: Answers lead in full, then Meaning, About.
 - The section header carries "Show as clue" / "Show as word" to flip the guess
   for the current result. Nothing is ever hidden, only reordered.
+- Settings offers **Result order: Auto or Manual**. Manual replaces the guess
+  and the header link with a Clue / Word control under the search box, and the
+  choice is remembered between searches.
 
 Behavior:
 

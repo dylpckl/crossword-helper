@@ -13,6 +13,15 @@ export function buildUrl(query: string): string {
   return `https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(query.replace(/ /g, '_'))}`;
 }
 
+/**
+ * Wiktionary entries are case-sensitive: "Big Apple" exists, "big apple" 404s.
+ * Returns the title-cased variant to retry with, or null when it's the same.
+ */
+export function titleCased(query: string): string | null {
+  const cased = query.replace(/\S+/g, (w) => w[0]!.toUpperCase() + w.slice(1));
+  return cased === query ? null : cased;
+}
+
 export function stripHtml(html: string): string {
   if (typeof DOMParser !== 'undefined') {
     const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -45,11 +54,21 @@ export function mapDefinition(res: WiktionaryResponse, query: string): Definitio
 export const wiktionary: DefinitionProvider = {
   name: NAME,
   async fetch(req, signal) {
-    try {
-      const res = await fetchJson<WiktionaryResponse>(NAME, buildUrl(req.query), signal, {
+    const attempt = async (query: string) => {
+      const res = await fetchJson<WiktionaryResponse>(NAME, buildUrl(query), signal, {
         headers: { 'Api-User-Agent': USER_AGENT },
       });
-      return mapDefinition(res, req.query);
+      return mapDefinition(res, query);
+    };
+    try {
+      return await attempt(req.query);
+    } catch (e) {
+      if (!(e instanceof NotFound)) throw e;
+    }
+    const cased = titleCased(req.query);
+    if (!cased) return null;
+    try {
+      return await attempt(cased);
     } catch (e) {
       if (e instanceof NotFound) return null;
       throw e;
