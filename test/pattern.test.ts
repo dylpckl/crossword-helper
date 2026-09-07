@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { fits, parsePattern, toDatamuseSp, toGrid } from '../src/pattern';
+import { fits, letterHits, parsePattern, toDatamuseSp, toGrid } from '../src/pattern';
 
 describe('parsePattern', () => {
   it('returns nothing for empty input', () => expect(parsePattern('  ')).toEqual({}));
   it('treats digits as a length', () => expect(parsePattern('5')).toEqual({ length: 5 }));
+  it('treats plain letters as a soft, deduped, any-order set', () => {
+    expect(parsePattern('sc')).toEqual({ letters: 'SC' });
+    expect(parsePattern('s c s')).toEqual({ letters: 'SC' });
+  });
   it('normalizes unknown markers to ?', () => {
     expect(parsePattern('sc_d.')).toEqual({ pattern: 'SC?D?', length: 5 });
     expect(parsePattern('?I??')).toEqual({ pattern: '?I??', length: 4 });
@@ -13,6 +17,12 @@ describe('parsePattern', () => {
     expect(parsePattern('rip ???????')).toEqual({ pattern: 'RIP???????', length: 10 });
   });
   it('rejects junk characters', () => expect(parsePattern('a1b').error).toMatch(/"1"/));
+  it('counts distinct letter hits', () => {
+    expect(letterHits('TIDE', 'SC')).toBe(0);
+    expect(letterHits('SCRAP', 'SC')).toBe(2);
+    expect(letterHits('SASS', 'SC')).toBe(1);
+    expect(letterHits('SASS')).toBeUndefined();
+  });
   it('rejects absurd lengths', () => expect(parsePattern('99').error).toBeDefined());
 });
 

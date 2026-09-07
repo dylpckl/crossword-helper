@@ -6,6 +6,7 @@
 export interface Constraint {
   pattern?: string;
   length?: number;
+  letters?: string;
 }
 
 export interface ParseResult extends Constraint {
@@ -15,6 +16,11 @@ export interface ParseResult extends Constraint {
 const UNKNOWN = /[?_.\-*]/g;
 const STRIP = /[\s'’"“”,()]/g;
 
+/**
+ * Letters only ("sc") → soft letters constraint.
+ * Any unknown marker ("sc_d.", "?i??") → positional pattern.
+ * Digits only ("5") → length.
+ */
 export function parsePattern(raw: string): ParseResult {
   const s = raw.trim();
   if (!s) return {};
@@ -23,12 +29,24 @@ export function parsePattern(raw: string): ParseResult {
     if (n < 1 || n > 30) return { error: 'Length must be between 1 and 30' };
     return { length: n };
   }
-  const cleaned = s.replace(STRIP, '').toUpperCase().replace(UNKNOWN, '?');
+  const stripped = s.replace(STRIP, '');
+  const positional = UNKNOWN.test(stripped);
+  UNKNOWN.lastIndex = 0;
+  const cleaned = stripped.toUpperCase().replace(UNKNOWN, '?');
   const bad = cleaned.match(/[^A-Z?]/);
-  if (bad) return { error: `Can't use "${bad[0]}" in a pattern` };
+  if (bad) return { error: `Can't use "${bad[0]}" here` };
   if (!cleaned) return {};
-  if (cleaned.length > 30) return { error: 'Pattern is too long' };
+  if (cleaned.length > 30) return { error: 'Too long' };
+  if (!positional) return { letters: [...new Set(cleaned)].join('') };
   return { pattern: cleaned, length: cleaned.length };
+}
+
+/** Distinct letters of `letters` that appear in the grid-form answer. */
+export function letterHits(grid: string, letters?: string): number | undefined {
+  if (!letters) return undefined;
+  let n = 0;
+  for (const ch of letters) if (grid.includes(ch)) n++;
+  return n;
 }
 
 /** Grid form: A–Z only. "rip current" → "RIPCURRENT". */

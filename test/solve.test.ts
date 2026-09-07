@@ -13,6 +13,9 @@ describe('buildRequest', () => {
   it('normalizes whitespace and attaches the constraint', () => {
     expect(buildRequest('  ocean   current ', 'sc?d?')).toEqual({ query: 'ocean current', pattern: 'SC?D?', length: 5 });
   });
+  it('carries letters as a soft constraint', () => {
+    expect(buildRequest('tide', 'sc')).toEqual({ query: 'tide', letters: 'SC' });
+  });
   it('surfaces validation errors', () => {
     expect(buildRequest('', '')).toEqual({ error: 'Type a word or phrase first' });
     const r = buildRequest('x', 'a1');
@@ -48,6 +51,13 @@ describe('solve', () => {
     expect(r.errors).toEqual([]);
     expect(fetchMock).toHaveBeenCalledTimes(3); // wiktionary not needed
     expect(getCached(req)!.answers).toHaveLength(r.answers.length);
+
+    // Same query with letters hits the cache and is re-ranked, no fetch.
+    fetchMock.mockClear();
+    const r2 = await solve({ query: 'tide', letters: 'PA' }, new AbortController().signal, { done: () => {} });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(r2.fromCache).toBe(true);
+    expect(r2.answers[0]!.answer).toBe('NEAP');
     vi.unstubAllGlobals();
   });
 

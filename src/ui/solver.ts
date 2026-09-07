@@ -5,6 +5,7 @@ import { renderDefinition, skeletonDefinition } from '../render/definition';
 import { renderHistory } from '../render/history';
 import { renderReference, skeletonReference } from '../render/reference';
 import { esc } from '../render/util';
+import { rankAnswers } from '../rank';
 import { buildRequest, isBuildError, solve } from '../solve';
 import { getHistory, getSettings, pushHistory } from '../store';
 import { buildLinks } from '../providers/links';
@@ -31,14 +32,14 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
         </button>
       </form>
       <div class="constraints">
-        <button type="button" class="chip" id="patternChip" aria-pressed="false" aria-controls="pattern">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="4" height="4"/><rect x="7" y="1" width="4" height="4"/><rect x="1" y="7" width="4" height="4"/><rect x="7" y="7" width="4" height="4"/></svg>
-          Pattern
-        </button>
-        <div class="pattern" id="pattern">
-          <input id="p" type="text" placeholder="?I??" aria-label="Letter pattern" maxlength="30" autocapitalize="characters" autocomplete="off" spellcheck="false">
-          <span class="hint" id="phint">? = unknown letter</span>
-        </div>
+        <label class="pattern">
+          <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="1" y="1" width="4" height="4"/><rect x="7" y="1" width="4" height="4"/><rect x="1" y="7" width="4" height="4"/><rect x="7" y="7" width="4" height="4"/></svg>
+          <input id="p" type="text" placeholder="Letters you have" aria-label="Letters you have, or a ? pattern" maxlength="30" autocapitalize="characters" autocomplete="off" spellcheck="false">
+          <button type="button" class="clear" id="pclear" aria-label="Clear letters" hidden>
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg>
+          </button>
+        </label>
+        <span class="hint" id="phint"></span>
       </div>
       <div class="form-error" id="formError" hidden></div>
     </div>
@@ -47,7 +48,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
 
   const $ = <T extends HTMLElement>(id: string) => view.querySelector<T>(`#${id}`)!;
   const q = $<HTMLInputElement>('q'), p = $<HTMLInputElement>('p'), out = $('out'), form = $<HTMLFormElement>('form');
-  const chip = $<HTMLButtonElement>('patternChip'), pat = $('pattern'), phint = $('phint'), formError = $('formError'), clearBtn = $('clear');
+  const phint = $('phint'), formError = $('formError'), clearBtn = $('clear'), pclear = $<HTMLButtonElement>('pclear');
   const sections = { answers: '', meaning: '', about: '' };
 
   let ctl: AbortController | null = null;
@@ -61,18 +62,40 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     $('recent').innerHTML = renderHistory(getHistory());
   }
 
-  function setPatternOpen(open: boolean) {
-    pat.classList.toggle('open', open);
-    chip.setAttribute('aria-pressed', String(open));
-  }
   function updateHint() {
     const c = parsePattern(p.value);
+    pclear.hidden = !p.value;
     phint.classList.toggle('err', Boolean(c.error));
-    phint.innerHTML = c.error ? esc(c.error) : c.length ? `<b>${c.length}</b> letters` : '? = unknown letter';
+    phint.innerHTML = c.error
+      ? esc(c.error)
+      : c.pattern
+        ? `<b>${c.length}</b> letters, by position`
+        : c.length
+          ? `<b>${c.length}</b> letters long`
+          : c.letters
+            ? 'any order · use ? for positions'
+            : '';
+  }
+
+  /** Letters changed: re-rank what we have instantly. Pattern/length changed: refetch. */
+  function onConstraintInput() {
+    updateHint();
+    if (!current) return;
+    const built = buildRequest(q.value, p.value);
+    if (isBuildError(built)) return;
+    const sameFetch = built.query === current.request.query && built.pattern === current.request.pattern && built.length === current.request.length;
+    clearTimeout(liveTimer);
+    if (sameFetch) {
+      current = { ...current, request: built, answers: rankAnswers(current.answers, built) };
+      sections.answers = renderAnswers(current.answers, built, { fromCache: current.fromCache, error: current.errors.find((e) => e.provider === 'Datamuse') });
+      paint();
+    } else {
+      liveTimer = window.setTimeout(run, 500);
+    }
   }
 
   async function run() {
-    const built = buildRequest(q.value, pat.classList.contains('open') ? p.value : '');
+    const built = buildRequest(q.value, p.value);
     if (isBuildError(built)) {
       formError.textContent = built.error;
       formError.hidden = false;
@@ -104,7 +127,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       },
     });
     if (mine.signal.aborted) return;
-    pushHistory({ query: req.query, pattern: req.pattern, at: Date.now(), topAnswer: result.answers[0]?.answer });
+    pushHistory({ query: req.query, pattern: req.pattern, letters: req.letters, at: Date.now(), topAnswer: result.answers[0]?.answer });
     refreshHistory();
   }
 
@@ -118,13 +141,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     }
   });
   clearBtn.addEventListener('click', () => { q.value = ''; clearBtn.hidden = true; q.focus(); });
-  chip.addEventListener('click', () => {
-    const open = !pat.classList.contains('open');
-    setPatternOpen(open);
-    if (open) p.focus();
-    else { p.value = ''; updateHint(); if (current) run(); }
-  });
-  p.addEventListener('input', updateHint);
+  pclear.addEventListener('click', () => { p.value = ''; onConstraintInput(); p.focus(); });
+  p.addEventListener('input', onConstraintInput);
   p.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); form.requestSubmit(); } });
 
   // tap = copy, hold = chain lookup
@@ -165,7 +183,6 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     q.value = query;
     clearBtn.hidden = !query;
     p.value = pattern;
-    setPatternOpen(Boolean(pattern));
     updateHint();
     if (submit) run();
   }
