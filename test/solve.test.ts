@@ -32,6 +32,7 @@ describe('solve', () => {
       if (url.includes('datamuse')) return json(datamuseRows);
       if (url.includes('dictionaryapi')) return json(dictEntries);
       if (url.includes('wikipedia')) return json(wikiSummary);
+      if (url.includes('wiktionary')) return json({}, 404);
       return json({}, 500);
     });
     vi.stubGlobal('fetch', fetchMock);
@@ -49,7 +50,7 @@ describe('solve', () => {
     expect(r.reference!.title).toBe('Tide');
     expect(r.links.map((l) => l.label)).toEqual(['Wordplays', 'Google', 'DuckDuckGo']);
     expect(r.errors).toEqual([]);
-    expect(fetchMock).toHaveBeenCalledTimes(3); // wiktionary not needed
+    expect(fetchMock).toHaveBeenCalledTimes(4); // both dictionaries run in parallel
     expect(getCached(req)!.answers).toHaveLength(r.answers.length);
 
     // Same query with letters hits the cache and is re-ranked, no fetch.
@@ -58,6 +59,20 @@ describe('solve', () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(r2.fromCache).toBe(true);
     expect(r2.answers[0]!.answer).toBe('NEAP');
+    vi.unstubAllGlobals();
+  });
+
+  it('uses wiktionary when free dictionary stalls, without surfacing an error', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('datamuse')) return json(datamuseRows);
+      if (url.includes('dictionaryapi')) return json({}, 502);
+      if (url.includes('wiktionary')) return json({ en: [{ partOfSpeech: 'Noun', definitions: [{ definition: 'x' }] }] });
+      return json({}, 404);
+    }));
+    const r = await solve({ query: 'q' }, new AbortController().signal, { done: () => {} });
+    expect(r.definition!.source).toBe('wiktionary');
+    expect(r.errors).toEqual([]);
     vi.unstubAllGlobals();
   });
 
