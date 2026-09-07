@@ -2,7 +2,7 @@
  * The one sheet: settings on top, about and links below. Replaces the old
  * Settings and About views, so nothing here is more than a tap and a scroll away.
  */
-import { clearCache, clearHistory, getSettings, saveSettings, type ResultOrder, type Theme } from '../store';
+import { clearCache, clearHistory, getSettings, saveSettings, type ResultOrder, type SearchPosition, type Theme } from '../store';
 import { AUTHOR_URL, COMMIT, DONATE_URL, REPO_URL, type Shell } from './shell';
 
 export function applyTheme(theme: Theme) {
@@ -35,6 +35,12 @@ export function mountSheet(shell: Shell, onChange: () => void) {
         <div class="seg" role="group" aria-label="Result order">${(['auto', 'manual'] as ResultOrder[])
           .map((o) => `<button data-order="${o}" aria-pressed="${s.resultOrder === o}">${o === 'auto' ? 'Auto' : 'Manual'}</button>`)
           .join('')}</div></div>
+      <div class="setting"><div class="text"><div class="label">Search box</div><div class="sub">${
+        s.searchPosition === 'top' ? 'Under the app bar.' : 'Docked at the bottom, in thumb reach.'
+      }</div></div>
+        <div class="seg" role="group" aria-label="Search box position">${(['top', 'bottom'] as SearchPosition[])
+          .map((p) => `<button data-pos="${p}" aria-pressed="${s.searchPosition === p}">${p === 'top' ? 'Top' : 'Bottom'}</button>`)
+          .join('')}</div></div>
       <div class="setting"><div class="text"><div class="label">Search as you type</div><div class="sub">Solves after a short pause. Uses more of the free quota.</div></div>
         <button class="switch" role="switch" aria-checked="${s.liveSearch}" data-key="liveSearch" aria-label="Search as you type"></button></div>
       <div class="setting"><div class="text"><div class="label">Recent searches</div><div class="sub">Stored only on this device.</div></div>
@@ -63,6 +69,7 @@ export function mountSheet(shell: Shell, onChange: () => void) {
     if (!t) return;
     if (t.dataset.theme) { applyTheme(saveSettings({ theme: t.dataset.theme as Theme }).theme); render(); }
     else if (t.dataset.order) { saveSettings({ resultOrder: t.dataset.order as ResultOrder }); render(); onChange(); }
+    else if (t.dataset.pos) { saveSettings({ searchPosition: t.dataset.pos as SearchPosition }); render(); onChange(); }
     else if (t.dataset.key === 'liveSearch') { saveSettings({ liveSearch: !getSettings().liveSearch }); render(); onChange(); }
     else if (t.dataset.action === 'clearHistory') { clearHistory(); onChange(); shell.toast('Recent searches cleared'); }
     else if (t.dataset.action === 'clearCache') { clearCache(); shell.toast('Cached results cleared'); }

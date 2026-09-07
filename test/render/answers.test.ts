@@ -13,13 +13,16 @@ describe('length chips', () => {
     expect(lengthCounts(ANSWERS)).toEqual([[4, 2], [5, 1], [6, 1], [10, 1]]);
   });
 
-  it('renders a chip per length with its count', () => {
+  it('renders one segment per length, plus All, with counts kept in the label', () => {
     const html = renderAnswers(ANSWERS, { query: 'x' });
+    expect(html).toContain('data-len="0" aria-pressed="true">All');
     expect(html).toContain('data-len="4"');
     expect(html).toContain('data-len="10"');
     expect(html).not.toContain('data-len="7"');
+    // The count is announced but never drawn, so two numbers can't be confused.
     expect(html).toContain('aria-label="4 letters, 2 answers"');
     expect(html).toContain('aria-label="5 letters, 1 answer"');
+    expect(html).not.toMatch(/>4<\/b>/);
   });
 
   it('filters the list and updates the count when a length is picked', () => {
@@ -29,12 +32,14 @@ describe('length chips', () => {
     expect(html).toContain('data-answer="EZRA"');
     expect(html).not.toContain('data-answer="NAHUM"');
     expect(html).toContain('data-len="4" aria-pressed="true"');
+    expect(html).toContain('data-len="0" aria-pressed="false">All');
   });
 
-  it('ignores a length nothing matches', () => {
+  it('ignores a length nothing matches and falls back to All', () => {
     const html = renderAnswers(ANSWERS, { query: 'x' }, { lengthFilter: 9 });
     expect(html).toContain('data-answer="NAHUM"');
-    expect(html).not.toContain('aria-pressed="true"');
+    expect(html).toContain('data-len="0" aria-pressed="true">All');
+    expect(html).not.toContain('data-len="4" aria-pressed="true"');
   });
 
   it('hides the row when every answer is the same length', () => {

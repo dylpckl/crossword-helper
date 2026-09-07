@@ -262,6 +262,9 @@ Layout intent (one input, two jobs):
 - Anything else reads as a **clue**: Answers lead in full, then Meaning, About.
 - The section header carries "Show as clue" / "Show as word" to flip the guess
   for the current result. Nothing is ever hidden, only reordered.
+- Settings offers **Search box: Top or Bottom**. Bottom docks only the query in
+  thumb reach; the letters field and length row stay with the answers they act
+  on, and the view pads itself so the last row clears the dock.
 - Settings offers **Result order: Auto or Manual**. Manual replaces the guess
   and the header link with a Clue / Word control under the search box, and the
   choice is remembered between searches.
@@ -271,8 +274,10 @@ opens a bottom sheet holding settings and about together; there is no navigation
 because the solver is the app. Diagnostics is the one separate view, reached from
 "Check data sources" at the bottom of the sheet, with a back arrow in the bar.
 
-Answer length is a chip row under the Answers header: one chip per length that
-actually has answers, each with a count, tap to filter and tap again to clear.
+Answer length is a segmented row under the Answers header: "All" followed by one
+segment per length that actually has answers. Counts stay in the accessible label
+rather than on screen, because a number beside a number reads as one ambiguous
+pair. The row scrolls sideways so it never wraps, whatever the clue.
 It is a view-time filter over answers already fetched, so it costs no request
 and touches neither the quota nor the cache key. The row is hidden when every
 answer is the same length, and a selection that matches nothing is ignored.

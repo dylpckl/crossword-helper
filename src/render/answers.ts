@@ -47,10 +47,13 @@ export function renderAnswers(answers: Answer[], req: SolveRequest, opts: Answer
     body = `<div class="empty">No matches for <b>${esc(req.query)}</b>. Try a shorter phrase, or search the web below.</div>`;
   } else {
     // One length is no choice, so the row only earns its space with two or more.
+    // Counts live in the label rather than on screen: two bare numbers side by
+    // side read as one ambiguous pair. "All" is the filter's visible off switch.
     const chips = counts.length > 1
-      ? `<div class="lens" role="group" aria-label="Filter by length">${counts
-          .map(([n, k]) => `<button type="button" data-len="${n}" aria-pressed="${n === active}" aria-label="${n} letters, ${k} answer${k === 1 ? '' : 's'}"><b>${n}</b><span>${k}</span></button>`)
-          .join('')}</div>`
+      ? `<div class="lens"><div class="lensbar" role="group" aria-label="Filter by length">
+          <button type="button" data-len="0" aria-pressed="${active === null}">All</button>${counts
+            .map(([n, k]) => `<button type="button" data-len="${n}" aria-pressed="${n === active}" aria-label="${n} letters, ${k} answer${k === 1 ? '' : 's'}">${n}</button>`)
+            .join('')}</div></div>`
       : '';
     const shown = opts.compact && !active ? filtered.slice(0, COMPACT_ROWS) : filtered;
     const hidden = filtered.length - shown.length;

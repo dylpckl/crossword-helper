@@ -14,6 +14,7 @@
   --warn: #9A6A12;
   --bad: #A3362B;
   --scrim: rgba(27, 27, 27, .35);
+  --dock-fade: rgba(27, 27, 27, .07);
   --shadow: 0 1px 0 rgba(27,27,27,.06), 0 8px 24px rgba(27,27,27,.12);
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
@@ -36,6 +37,7 @@
   --warn: #D9A94A;
   --bad: #E07A6E;
   --scrim: rgba(0, 0, 0, .55);
+  --dock-fade: rgba(0, 0, 0, .4);
   --shadow: 0 1px 0 rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.5);
   color-scheme: dark;
 }
@@ -118,6 +120,20 @@ body.locked { overflow: hidden; }
 
 /* ---------- search ---------- */
 .searchbar { position: sticky; top: calc(48px + var(--sat)); z-index: 2; background: var(--ground); padding: 12px 0 10px; }
+
+/*
+ * Bottom search: only the query docks, so the letters field and the length row
+ * stay with the answers they act on. The dock is fixed, so it leaves the sticky
+ * bar's flow entirely and the view pads itself to keep the last row clear.
+ */
+body.search-bottom .querybar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 3;
+  width: 100%; max-width: 480px; margin: 0 auto;
+  background: var(--ground); padding: 10px 18px calc(10px + var(--sab));
+  box-shadow: 0 -1px 0 var(--rule-2), 0 -10px 24px var(--dock-fade);
+}
+body.search-bottom .searchbar { padding-top: 10px; }
+body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .search { display: flex; gap: 8px; }
 .field {
   flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0;
@@ -167,15 +183,15 @@ body.locked { overflow: hidden; }
 .notice.bad { color: var(--bad); }
 
 /* answers */
-.lens { display: flex; gap: 7px; flex-wrap: wrap; padding: 2px 0 10px; }
-.lens button {
-  border: 1px solid var(--rule); background: transparent; color: var(--ink-2); border-radius: 999px;
-  min-height: 40px; padding: 0 14px; font-size: 14px; display: inline-flex; align-items: baseline; gap: 5px;
+.lens { display: flex; overflow-x: auto; scrollbar-width: none; padding: 1px 0 12px; }
+.lens::-webkit-scrollbar { display: none; }
+.lensbar { display: inline-flex; flex: none; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden; background: var(--paper); }
+.lensbar button {
+  flex: none; border: 0; border-left: 1px solid var(--rule); background: transparent; color: var(--ink-2);
+  min-width: 44px; height: 40px; padding: 0 14px; font-size: 15px; font-variant-numeric: tabular-nums;
 }
-.lens button b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.lens button span { font-size: 11.5px; color: var(--ink-3); }
-.lens button[aria-pressed="true"] { background: var(--blue); border-color: var(--blue); color: var(--blue-ink); }
-.lens button[aria-pressed="true"] span { color: var(--blue-ink); opacity: .75; }
+.lensbar button:first-child { border-left: 0; }
+.lensbar button[aria-pressed="true"] { background: var(--blue); color: var(--blue-ink); }
 .answers { display: flex; flex-direction: column; }
 .row {
   display: grid; grid-template-columns: 1fr; grid-template-areas: "tiles" "gloss";
