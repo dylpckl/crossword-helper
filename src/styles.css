@@ -140,6 +140,9 @@ a { color: var(--blue); }
 .section { margin-top: 22px; }
 .section > h2 { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
 .section > h2 .count { font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.swap { margin-left: auto; border: 0; background: transparent; color: var(--blue); font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; padding: 6px 0; }
+.more { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--blue); font-size: 14px; padding: 12px 0 4px; border-top: 1px solid var(--rule-2); }
+.card.hero { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
 .pill { margin-left: auto; font-size: 10px; letter-spacing: .06em; padding: 3px 7px; border-radius: 999px; background: var(--rule-2); color: var(--ink-2); text-transform: uppercase; }
 .muted { color: var(--ink-3); font-size: 14px; padding: 6px 0; }
 .notice { color: var(--ink-3); font-size: 13px; padding: 6px 0 0; }

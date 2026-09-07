@@ -55,8 +55,45 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let current: SolveResult | null = null;
   let liveTimer: number | undefined;
 
+  /**
+   * Layout intent. A short input with a dictionary entry reads as a word:
+   * Meaning leads, Answers are collapsed. Anything else reads as a clue.
+   * `override` is the user's flip for the current result; `expanded` is the
+   * collapsed answer list opened.
+   */
+  type Layout = 'word' | 'clue';
+  let override: Layout | null = null;
+  let expanded = false;
+
+  function guessLayout(query: string, definition: SolveResult['definition'] | undefined): Layout {
+    const short = query.split(' ').length <= 2;
+    if (definition === undefined) return short ? 'word' : 'clue'; // still loading: provisional
+    return short && definition ? 'word' : 'clue';
+  }
+  function layout(): Layout {
+    if (override) return override;
+    return guessLayout(q.value.trim().replace(/\s+/g, ' '), current ? current.definition : undefined);
+  }
+  function swapLabel(): string {
+    if (layout() === 'word') return 'Show as clue';
+    return current?.definition ? 'Show as word' : '';
+  }
+
   function paint() {
-    out.innerHTML = sections.answers + sections.meaning + sections.about;
+    out.innerHTML =
+      layout() === 'word'
+        ? sections.meaning + sections.about + sections.answers
+        : sections.answers + sections.meaning + sections.about;
+  }
+  /** Re-render every section from `current` using the present layout. */
+  function repaintAll() {
+    if (!current) return;
+    const r = current, req = r.request, word = layout() === 'word';
+    const datamuseErr = r.errors.find((e) => e.provider === 'Datamuse');
+    sections.answers = renderAnswers(r.answers, req, { fromCache: r.fromCache, error: datamuseErr, compact: word && !expanded, swap: word ? '' : swapLabel() });
+    sections.meaning = renderDefinition(r.definition, req.query, r.errors, { hero: word, swap: word ? swapLabel() : '' });
+    sections.about = renderReference(r.reference, r.links, req.query, r.errors);
+    paint();
   }
   function refreshHistory() {
     $('recent').innerHTML = renderHistory(getHistory());
@@ -87,8 +124,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     clearTimeout(liveTimer);
     if (sameFetch) {
       current = { ...current, request: built, answers: rankAnswers(current.answers, built) };
-      sections.answers = renderAnswers(current.answers, built, { fromCache: current.fromCache, error: current.errors.find((e) => e.provider === 'Datamuse') });
-      paint();
+      repaintAll();
     } else {
       liveTimer = window.setTimeout(run, 500);
     }
@@ -106,6 +142,9 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl?.abort();
     ctl = new AbortController();
     const mine = ctl;
+    override = null;
+    expanded = false;
+    current = null;
     sections.answers = skeletonAnswers();
     sections.meaning = skeletonDefinition();
     sections.about = skeletonReference();
@@ -119,11 +158,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       done: (r) => {
         if (mine.signal.aborted) return;
         current = r;
-        const datamuseErr = r.errors.find((e) => e.provider === 'Datamuse');
-        sections.answers = renderAnswers(r.answers, req, { fromCache: r.fromCache, error: datamuseErr });
-        sections.meaning = renderDefinition(r.definition, req.query, r.errors);
-        sections.about = renderReference(r.reference, r.links, req.query, r.errors);
-        paint();
+        repaintAll();
       },
     });
     if (mine.signal.aborted) return;
@@ -170,6 +205,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       );
       return;
     }
+    if (t.closest('[data-swap]')) { override = layout() === 'word' ? 'clue' : 'word'; repaintAll(); return; }
+    if (t.closest('[data-expand-answers]')) { expanded = true; repaintAll(); return; }
     const play = t.closest<HTMLElement>('[data-audio]');
     if (play) { new Audio(play.dataset.audio).play().catch(() => shell.toast("Couldn't play audio")); return; }
     if (t.closest('[data-expand]')) t.closest('.card')?.classList.toggle('expanded');

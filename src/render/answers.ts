@@ -7,15 +7,31 @@ export function skeletonAnswers(): string {
   </section>`;
 }
 
-export function renderAnswers(answers: Answer[], req: SolveRequest, opts: { fromCache?: boolean; error?: ProviderError } = {}): string {
-  const head = `<h2>Answers ${answers.length ? `<span class="count">${countLabel(answers, req)}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}</h2>`;
+export const COMPACT_ROWS = 3;
+
+export interface AnswersOpts {
+  fromCache?: boolean;
+  error?: ProviderError;
+  /** Show only the first few rows with a "show more" button. */
+  compact?: boolean;
+  /** Header link that flips the layout, e.g. "Show as word". */
+  swap?: string;
+}
+
+export function renderAnswers(answers: Answer[], req: SolveRequest, opts: AnswersOpts = {}): string {
+  const swap = opts.swap ? `<button type="button" class="swap" data-swap>${esc(opts.swap)}</button>` : '';
+  const head = `<h2>Answers ${answers.length ? `<span class="count">${countLabel(answers, req)}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}${swap}</h2>`;
   let body: string;
   if (opts.error && !answers.length) {
     body = `<div class="notice bad">${esc(opts.error.message)}.</div>`;
   } else if (!answers.length) {
     body = `<div class="empty">No matches for <b>${esc(req.query)}</b>. Try a shorter phrase, or search the web below.</div>`;
   } else {
-    body = `<div class="answers">${answers.map((a) => row(a, req)).join('')}</div>`;
+    const shown = opts.compact ? answers.slice(0, COMPACT_ROWS) : answers;
+    const hidden = answers.length - shown.length;
+    body = `<div class="answers">${shown.map((a) => row(a, req)).join('')}</div>${
+      hidden > 0 ? `<button type="button" class="more" data-expand-answers>Show ${hidden} more</button>` : ''
+    }`;
   }
   return `<section class="section" id="sec-answers">${head}${body}</section>`;
 }
