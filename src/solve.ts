@@ -39,20 +39,19 @@ export interface SolveEvents {
   done: (r: SolveResult) => void;
 }
 
-/** Definition: Free Dictionary first, Wiktionary when that has nothing or fails. */
+/**
+ * Definition: both dictionaries in parallel. Free Dictionary is preferred
+ * (phonetics, audio) but it stalls often, so Wiktionary runs alongside and
+ * fills in the moment Free Dictionary fails or comes back empty. An error
+ * is only recorded when it cost us a definition.
+ */
 async function fetchDefinition(req: SolveRequest, signal: AbortSignal, errors: ProviderError[]): Promise<Definition | null> {
-  try {
-    const d = await dictionaryapi.fetch(req, signal);
-    if (d) return d;
-  } catch (e) {
-    errors.push(toProviderError(dictionaryapi.name, e));
-  }
-  try {
-    return await wiktionary.fetch(req, signal);
-  } catch (e) {
-    errors.push(toProviderError(wiktionary.name, e));
-    return null;
-  }
+  const [primary, fallback] = await Promise.allSettled([dictionaryapi.fetch(req, signal), wiktionary.fetch(req, signal)]);
+  if (primary.status === 'fulfilled' && primary.value) return primary.value;
+  if (fallback.status === 'fulfilled' && fallback.value) return fallback.value;
+  if (primary.status === 'rejected') errors.push(toProviderError(dictionaryapi.name, primary.reason));
+  if (fallback.status === 'rejected') errors.push(toProviderError(wiktionary.name, fallback.reason));
+  return null;
 }
 
 export async function solve(req: SolveRequest, signal: AbortSignal, on: SolveEvents): Promise<SolveResult> {
