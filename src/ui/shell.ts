@@ -34,7 +34,12 @@ export function mountShell(app: HTMLElement): Shell {
     <main class="view" id="view-diagnostics" hidden></main>
     <div class="scrim" id="scrim"></div>
     <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Settings and about" hidden>
-      <button class="grab" id="grab" aria-label="Close"><i></i></button>
+      <div class="sheet-top" id="sheetTop">
+        <button class="grab" id="grab" aria-label="Close" tabindex="-1"><i></i></button>
+        <button class="sheet-x" id="sheetX" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
       <div class="sheet-body" id="sheetBody"></div>
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>`;
@@ -72,10 +77,40 @@ export function mountShell(app: HTMLElement): Shell {
   cogBtn.addEventListener('click', () => openSheet(!sheet.classList.contains('open')));
   backBtn.addEventListener('click', () => show('solver'));
   scrim.addEventListener('click', () => openSheet(false));
-  $('grab').addEventListener('click', () => openSheet(false));
+  $('sheetX').addEventListener('click', () => openSheet(false));
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && sheet.classList.contains('open')) openSheet(false);
   });
+
+  // Drag the handle down to dismiss. A short flick counts as much as a long
+  // pull, so the gesture works without committing to a full swipe.
+  const DISMISS_PX = 90, FLICK_PX = 30, FLICK_MS = 260;
+  const top = $('sheetTop');
+  let dragging = false, startY = 0, startAt = 0, dy = 0;
+
+  top.addEventListener('pointerdown', (e) => {
+    dragging = true; startY = e.clientY; startAt = performance.now(); dy = 0;
+    sheet.style.transition = 'none';
+    top.setPointerCapture(e.pointerId);
+  });
+  top.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    dy = Math.max(0, e.clientY - startY);
+    sheet.style.transform = `translateY(${dy}px)`;
+    scrim.style.opacity = String(Math.max(0, 1 - dy / 400));
+  });
+  const endDrag = () => {
+    if (!dragging) return;
+    dragging = false;
+    sheet.style.transition = '';
+    sheet.style.transform = '';
+    scrim.style.opacity = '';
+    const flick = dy > FLICK_PX && performance.now() - startAt < FLICK_MS;
+    if (dy > DISMISS_PX || flick) openSheet(false);
+    else if (dy <= 5) openSheet(false); // a tap on the handle still closes
+  };
+  top.addEventListener('pointerup', endDrag);
+  top.addEventListener('pointercancel', endDrag);
 
   let toastTimer: number | undefined;
   const toastEl = $('toast');

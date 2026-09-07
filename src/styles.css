@@ -87,8 +87,16 @@ body.locked { overflow: hidden; }
 }
 .sheet.open { transform: none; }
 @media (prefers-reduced-motion: reduce) { .sheet, .scrim { transition: none; } }
-.grab { flex: none; border: 0; background: transparent; padding: 10px 0 6px; display: grid; place-items: center; }
-.grab i { width: 36px; height: 4px; border-radius: 2px; background: var(--dim); display: block; }
+.sheet-top { flex: none; position: relative; min-height: 46px; display: grid; place-items: center; touch-action: none; }
+.grab { border: 0; background: transparent; padding: 10px 24px; display: grid; place-items: center; cursor: grab; }
+.grab i { width: 40px; height: 4px; border-radius: 2px; background: var(--dim); display: block; }
+.sheet-x {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; border: 0; background: transparent; border-radius: 50%;
+  display: grid; place-items: center; color: var(--ink-3);
+}
+.sheet-x svg { width: 18px; height: 18px; }
+.sheet-x:hover { background: var(--rule-2); color: var(--ink); }
 .sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 18px calc(20px + var(--sab)); }
 .sheet-head { margin: 4px 0 2px; font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); }
 
