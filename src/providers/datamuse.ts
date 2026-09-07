@@ -36,6 +36,7 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
       display: r.word,
       length: answer.length,
       score: Math.min(1, (r.score ?? 0) / max),
+      rawScore: r.score,
       fitsPattern: null,
       gloss: def || undefined,
       partOfSpeech: tags.length ? tags : undefined,

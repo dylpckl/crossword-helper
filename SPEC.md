@@ -88,7 +88,7 @@ Mapping:
 | Datamuse | Answer |
 |---|---|
 | `word` | `display`; `answer = word.toUpperCase().replace(/[^A-Z]/g,'')` |
-| `score / maxScore` | `score` |
+| `score / maxScore` | `score` (relative to the top answer; raw integer kept in `rawScore`) |
 | `defs[0]` after the tab | `gloss` |
 | `tags` minus `f:*` and `syn` | `partOfSpeech` |
 
@@ -225,10 +225,10 @@ Single screen, portrait-first, everything reachable with one thumb.
 │ └────────┘                   │
 │                              │
 │  ANSWERS                     │
-│  T I D E              ●●●●○  │  ← letter tiles, score dots
+│  T I D E              ▬▬▬▬▬  │  ← letter tiles, relevance bar
 │  a periodic rise and fall…   │  ← gloss, one line
-│  E D D Y              ●●●○○  │
-│  R I P C U R R E N T  ●●○○○  │  (dimmed if !fitsPattern)
+│  E D D Y              ▬▬▬▬   │
+│  R I P C U R R E N T  ▬▬     │  (dimmed if !fitsPattern)
 │                              │
 │  MEANING                     │
 │  ocean current  /ˈoʊʃən/  ▶  │  ← audio on tap

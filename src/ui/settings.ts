@@ -39,7 +39,8 @@ export function mountSettings(view: HTMLElement, onChange: () => void) {
 export function mountAbout(view: HTMLElement, version: string) {
   view.innerHTML = `<div class="about-page"><h2 class="page">About</h2>
     <p class="lead">Type a word or phrase. Clue Solver treats it as a crossword clue and lists likely answers as letter tiles, then shows what it means.</p>
-    <p>Add a pattern like <code>SC?D?</code> when you already know some crossing letters. Tap an answer to copy it, hold one to look it up.</p>
+    <p>Type letters you already have to rank answers that contain them, or a pattern like <code>SC?D?</code> to match by position. Tap an answer to copy it, hold one to look it up.</p>
+    <p>The thin bar beside each answer is relevance relative to the top answer for that clue. Datamuse scores are only meaningful within one list, so the bar is never a percentage of certainty.</p>
     <p>Answers come from Datamuse. Definitions come from the Free Dictionary API and Wiktionary. Summaries come from Wikipedia. Nothing you type is sent anywhere else, and no account is needed.</p>
     <dl><dt>Version</dt><dd>${version}</dd><dt>Source</dt><dd><a href="https://github.com/dylpckl/crossword-helper" target="_blank" rel="noopener">github.com/dylpckl/crossword-helper</a></dd></dl>
   </div>`;

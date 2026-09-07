@@ -67,8 +67,16 @@ export interface Answer {
   display: string;
   /** `answer.length` — cached for sorting and the length badge. */
   length: number;
-  /** Normalized 0–1 confidence. Datamuse score / max score, or Claude's own. */
+  /**
+   * Relevance relative to the best answer in this result: 1 for the top
+   * answer, lower for the rest. Not a probability and not comparable across
+   * queries. Datamuse returns an unscaled integer `score` whose only meaning
+   * is ordering within one response; this is that score divided by the
+   * highest score in the response. Claude answers set this themselves.
+   */
   score: number;
+  /** The provider's raw score, for display. Datamuse: the unscaled integer. */
+  rawScore?: number;
   /**
    * true  → matches `SolveRequest.pattern`/`length`
    * false → does not match (UI dims it, sorts it last)
