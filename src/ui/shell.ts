@@ -20,32 +20,28 @@ export interface Shell {
   toast(msg: string, action?: { label: string; onClick: () => void }): void;
 }
 
-export function mountShell(app: HTMLElement, version: string): Shell {
+export function mountShell(app: HTMLElement): Shell {
   app.innerHTML = `
     <header class="appbar">
       <button class="iconbtn" id="menuBtn" aria-label="Menu" aria-controls="drawer" aria-expanded="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
-      <h1>Clue Solver</h1>
+      <h1>Crosscheck</h1>
     </header>
     <div class="scrim" id="scrim"></div>
     <nav class="drawer" id="drawer" aria-label="Main">
-      <div class="brand">Clue Solver<small>Crossword answers and meanings</small></div>
+      <div class="brand">Crosscheck<small>Crossword answers and word meanings</small></div>
       ${NAV.map((n) => `<button class="navbtn" data-view="${n.id}">${n.icon}${n.label}</button>`).join('')}
       <div class="foot">
         <a class="footlink" href="${REPO_URL}" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02A9.6 9.6 0 0 1 12 6.84c.85 0 1.71.11 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
           GitHub
         </a>
-        <a class="footlink" href="${AUTHOR_URL}" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>
-          dylansmith.dev
-        </a>
         <a class="footlink" href="${DONATE_URL}" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>
           Buy me a coffee
         </a>
-        <a class="build" href="${REPO_URL}/commit/${COMMIT}" target="_blank" rel="noopener" title="Open this build's commit">v${version} · ${COMMIT}</a>
+        <a class="build" href="${REPO_URL}/commit/${COMMIT}" target="_blank" rel="noopener" title="Open this build's commit">Build ${COMMIT}</a>
       </div>
     </nav>
     ${NAV.map((n) => `<main class="view" id="view-${n.id}" hidden></main>`).join('')}

@@ -1,6 +1,6 @@
 # crossword-helper
 
-Clue Solver: type a word or phrase, get candidate crossword answers as letter
+Crosscheck: type a word or phrase, get candidate crossword answers as letter
 tiles plus what it means. Mobile-first PWA, no backend.
 
 - Spec: [`SPEC.md`](SPEC.md)

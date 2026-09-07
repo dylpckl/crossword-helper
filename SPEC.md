@@ -1,4 +1,4 @@
-# Clue Solver — spec
+# Crosscheck — spec
 
 One input. Type a word or phrase, get (a) candidate crossword answers as
 letter tiles and (b) what the phrase means. Mobile-first, installable PWA,
@@ -224,7 +224,7 @@ Single screen, portrait-first, everything reachable with one thumb.
 
 ```
 ┌──────────────────────────────┐
-│  Clue Solver                 │  ← app name, small
+│  Crosscheck                  │  ← app name, small
 │ ┌──────────────────────────┐ │
 │ │ ocean current            │ │  ← one input, autofocus, enterkeyhint=search
 │ └──────────────────────────┘ │
@@ -291,8 +291,8 @@ Behavior:
 
 ```json
 {
-  "name": "Clue Solver",
-  "short_name": "Clues",
+  "name": "Crosscheck",
+  "short_name": "Crosscheck",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#EFE9DD",
