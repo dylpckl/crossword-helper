@@ -272,13 +272,19 @@ body.search-bottom .view { padding-bottom: calc(96px + var(--sab)); }
 .about .extract { font-size: 14px; color: var(--ink-2); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* links */
-.links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.linkblock { padding-top: 2px; }
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px; }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
 .links a { text-decoration: none; font-size: 13px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); display: inline-flex; align-items: center; gap: 5px; min-height: 36px; }
 .links a svg { width: 11px; height: 11px; }
 
-/* recent */
-.recent { display: flex; gap: 8px; flex-wrap: wrap; }
-.recent button { border: 0; background: var(--rule-2); color: var(--ink-2); border-radius: 8px; padding: 8px 10px; font-size: 13px; display: inline-flex; gap: 6px; align-items: center; min-height: 36px; }
+/* recent: one line under the input that scrolls sideways rather than wrapping */
+.recent { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 4px; margin-bottom: 4px; }
+.recent::-webkit-scrollbar { display: none; }
+.recent button {
+  flex: none; border: 1px solid var(--rule); background: transparent; color: var(--ink-2); border-radius: 999px;
+  padding: 0 14px; font-size: 13.5px; display: inline-flex; gap: 6px; align-items: center; min-height: 38px; white-space: nowrap;
+}
 .recent button code { font: 500 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .12em; color: var(--blue); }
 
 /* skeleton */

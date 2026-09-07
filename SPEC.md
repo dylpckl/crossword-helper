@@ -254,10 +254,11 @@ Single screen, portrait-first, everything reachable with one thumb.
 └──────────────────────────────┘
 ```
 
-Sections keep a fixed order for every search: **Meaning, Answers, Search
-elsewhere**. Meaning gathers both things that answer "what is this" — the
-dictionary entry and the Wikipedia summary — behind one disclosure, each card
-naming its own source. Open, it shows both cards and the answer list below is
+Sections keep a fixed order for every search: **Meaning, Answers**. Meaning
+gathers everything that answers "what is this" — the dictionary entry, the
+Wikipedia summary, and the links out — behind one disclosure, each card naming
+its own source. Recent searches sit directly under the input as a single row of
+pills that scrolls sideways. Open, it shows both cards and the answer list below is
 capped at three rows; collapsed, it is a single tappable line carrying the first
 sense, and the answers show in full. The app guesses the state — open when a
 short input got a definition — and a tap on the header overrides it.
