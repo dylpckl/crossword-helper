@@ -8,6 +8,8 @@ const NAV: { id: ViewId; label: string; icon: string }[] = [
   { id: 'about', label: 'About', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>' },
 ];
 
+export const DONATE_URL = 'https://paypal.me/askdyl';
+
 export interface Shell {
   root: HTMLElement;
   views: Record<ViewId, HTMLElement>;
@@ -29,7 +31,13 @@ export function mountShell(app: HTMLElement, version: string): Shell {
     <nav class="drawer" id="drawer" aria-label="Main">
       <div class="brand">Clue Solver<small>Crossword answers and meanings</small></div>
       ${NAV.map((n) => `<button class="navbtn" data-view="${n.id}">${n.icon}${n.label}</button>`).join('')}
-      <div class="foot">v${version}</div>
+      <div class="foot">
+        <a class="donate" href="${DONATE_URL}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/></svg>
+          Buy me a coffee
+        </a>
+        <span>v${version}</span>
+      </div>
     </nav>
     ${NAV.map((n) => `<main class="view" id="view-${n.id}" hidden></main>`).join('')}
     <div class="toast" id="toast" role="status" aria-live="polite"></div>`;

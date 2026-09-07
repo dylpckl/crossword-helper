@@ -1,4 +1,5 @@
 import { clearCache, clearHistory, getSettings, saveSettings, type Theme } from '../store';
+import { DONATE_URL } from './shell';
 
 export function applyTheme(theme: Theme) {
   const root = document.documentElement;
@@ -42,6 +43,7 @@ export function mountAbout(view: HTMLElement, version: string) {
     <p>Type letters you already have to rank answers that contain them, or a pattern like <code>SC?D?</code> to match by position. Tap an answer to copy it, hold one to look it up.</p>
     <p>The number beside each answer is Datamuse's relevance score for that clue, higher is better. It only means something within one list, so it is never a percentage of certainty.</p>
     <p>Answers come from Datamuse. Definitions come from the Free Dictionary API and Wiktionary. Summaries come from Wikipedia. Nothing you type is sent anywhere else, and no account is needed.</p>
+    <p>Clue Solver is free and has no ads. If it helps you finish a puzzle, you can <a href="${DONATE_URL}" target="_blank" rel="noopener">buy me a coffee</a>.</p>
     <dl><dt>Version</dt><dd>${version}</dd><dt>Source</dt><dd><a href="https://github.com/dylpckl/crossword-helper" target="_blank" rel="noopener">github.com/dylpckl/crossword-helper</a></dd></dl>
   </div>`;
 }
