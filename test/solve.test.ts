@@ -1,0 +1,73 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import datamuseRows from './fixtures/datamuse-tide.json';
+import dictEntries from './fixtures/dictionaryapi-tide.json';
+import wikiSummary from './fixtures/wikipedia-tide.json';
+import { buildRequest, isBuildError, solve } from '../src/solve';
+import { getCached } from '../src/store';
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+}
+
+describe('buildRequest', () => {
+  it('normalizes whitespace and attaches the constraint', () => {
+    expect(buildRequest('  ocean   current ', 'sc?d?')).toEqual({ query: 'ocean current', pattern: 'SC?D?', length: 5 });
+  });
+  it('surfaces validation errors', () => {
+    expect(buildRequest('', '')).toEqual({ error: 'Type a word or phrase first' });
+    const r = buildRequest('x', 'a1');
+    expect(isBuildError(r) && r.error).toMatch(/"1"/);
+  });
+});
+
+describe('solve', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('fans out, assembles a SolveResult, and caches it', async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('datamuse')) return json(datamuseRows);
+      if (url.includes('dictionaryapi')) return json(dictEntries);
+      if (url.includes('wikipedia')) return json(wikiSummary);
+      return json({}, 500);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const req = { query: 'tide' };
+    const events: string[] = [];
+    const r = await solve(req, new AbortController().signal, {
+      answers: () => events.push('answers'),
+      definition: () => events.push('definition'),
+      reference: () => events.push('reference'),
+      done: () => events.push('done'),
+    });
+    expect(events.sort()).toEqual(['answers', 'definition', 'done', 'reference']);
+    expect(r.answers[0]!.answer).toBe('EBB');
+    expect(r.definition!.source).toBe('dictionaryapi');
+    expect(r.reference!.title).toBe('Tide');
+    expect(r.links.map((l) => l.label)).toEqual(['Wordplays', 'Google', 'DuckDuckGo']);
+    expect(r.errors).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(3); // wiktionary not needed
+    expect(getCached(req)!.answers).toHaveLength(r.answers.length);
+    vi.unstubAllGlobals();
+  });
+
+  it('falls back to wiktionary on a dictionary 404 and records partial failures without caching', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('datamuse')) return json({ error: 'nope' }, 503);
+      if (url.includes('dictionaryapi')) return json({ title: 'No Definitions Found' }, 404);
+      if (url.includes('wiktionary')) return json({ en: [{ partOfSpeech: 'Noun', definitions: [{ definition: 'x' }] }] });
+      if (url.includes('wikipedia')) return json({}, 404);
+      return json({}, 500);
+    }));
+    const req = { query: 'zzz' };
+    const r = await solve(req, new AbortController().signal, { done: () => {} });
+    expect(r.answers).toEqual([]);
+    expect(r.definition!.source).toBe('wiktionary');
+    expect(r.reference).toBeNull();
+    expect(r.links.map((l) => l.label)).toContain('Wikipedia');
+    expect(r.errors).toEqual([{ provider: 'Datamuse', kind: 'http', message: 'Datamuse returned 503', status: 503 }]);
+    expect(getCached(req)).toBeNull();
+    vi.unstubAllGlobals();
+  });
+});

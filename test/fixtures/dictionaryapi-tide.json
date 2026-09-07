@@ -1,0 +1,12 @@
+[{"word":"tide","phonetic":"/taɪd/","phonetics":[{"text":"/taɪd/","audio":""},{"text":"/taɪd/","audio":"https://api.dictionaryapi.dev/media/pronunciations/en/tide-us.mp3"}],
+ "meanings":[
+  {"partOfSpeech":"noun","definitions":[
+    {"definition":"The periodic change of the sea level, caused by the gravitational pull of the Moon and Sun.","example":"the changing patterns of the tides","synonyms":["ebb","flow"]},
+    {"definition":"A stream, current or flood.","synonyms":[]},
+    {"definition":"Time, notably anniversary, period or season linked to an ecclesiastical feast.","example":"Christmastide"}]},
+  {"partOfSpeech":"verb","definitions":[
+    {"definition":"To cause to float with the tide."},
+    {"definition":"To pour a tide or flood."},
+    {"definition":"To work into or out of a river or harbor by drifting with the tide."},
+    {"definition":"Extra sense that should be capped."}]}],
+ "sourceUrls":["https://en.wiktionary.org/wiki/tide"]}]
