@@ -254,13 +254,20 @@ Single screen, portrait-first, everything reachable with one thumb.
 └──────────────────────────────┘
 ```
 
-Sections keep a fixed order for every search: **Meaning, Answers, About**.
-Meaning is a disclosure. Open, it is the full card and the answer list below is
-capped at three rows so About stays reachable; collapsed, it is a single tappable
-line carrying the term and first sense, and the answers show in full. The app
-guesses the state — open when a short input got a definition — and a tap on the
-header overrides it. Because the order never changes, nothing reflows when the
-definition lands, and there is no separate control to learn.
+Sections keep a fixed order for every search: **Meaning, Answers, Search
+elsewhere**. Meaning gathers both things that answer "what is this" — the
+dictionary entry and the Wikipedia summary — behind one disclosure, each card
+naming its own source. Open, it shows both cards and the answer list below is
+capped at three rows; collapsed, it is a single tappable line carrying the first
+sense, and the answers show in full. The app guesses the state — open when a
+short input got a definition — and a tap on the header overrides it.
+
+Both states stay in the DOM so the open and close can animate: a grid row
+transitions between `0fr` and `1fr`, which lets the browser measure the content
+without any height being hardcoded. Filtering by length re-renders the answers
+inside a View Transition, and each row carries a `view-transition-name` so rows
+morph rather than jump. Where View Transitions are missing, or motion is not
+wanted, both changes simply apply at once. No animation library.
 
 Answer length is a segmented row under the Answers header: "All" followed by one
 segment per length that actually has answers. Counts stay in the accessible label
