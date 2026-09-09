@@ -13,6 +13,7 @@ export function rankAnswers(answers: Answer[], req: SolveRequest): Answer[] {
       (a, b) =>
         Number(b.fitsPattern === true) - Number(a.fitsPattern === true) ||
         (b.letterHits ?? 0) - (a.letterHits ?? 0) ||
+        (b.priority ?? 0) - (a.priority ?? 0) ||
         b.score - a.score ||
         a.length - b.length,
     );
@@ -38,6 +39,9 @@ export function mergeAnswers(answers: Answer[]): Answer[] {
       ...winner,
       gloss: clued?.gloss ?? winner.gloss ?? prev.gloss ?? a.gloss,
       partOfSpeech: winner.partOfSpeech ?? prev.partOfSpeech ?? a.partOfSpeech,
+      // Evidence does not cancel out: an answer both published for this clue
+      // and merely associated with it is still published for this clue.
+      priority: Math.max(prev.priority ?? 0, a.priority ?? 0),
     });
   }
   return [...seen.values()];

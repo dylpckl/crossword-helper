@@ -99,3 +99,18 @@ describe('the corpus itself', () => {
     expect(seen.size).toBe(CROSSWORDESE.length);
   });
 });
+
+describe('evidence tier', () => {
+  it('marks an exact stock clue as strong evidence', () => {
+    const idol = findClued(req('false god')).find((a) => a.answer === 'IDOL');
+    expect(idol?.priority).toBe(1);
+  });
+
+  it('leaves a partial match to compete on score alone', () => {
+    // A setter who wrote "coin" did not write the stock clue "old coin", so
+    // SOU is a weaker signal here and must not outrank a good association.
+    const sou = findClued(req('coin')).find((a) => a.answer === 'SOU');
+    expect(sou?.priority).toBe(0);
+    expect(sou?.score).toBeLessThan(1);
+  });
+});

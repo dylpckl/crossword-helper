@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:cluebank": "node --experimental-strip-types scripts/build-cluebank.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
