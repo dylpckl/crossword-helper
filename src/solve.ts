@@ -1,12 +1,13 @@
 import type { Answer, Definition, ProviderError, Reference, SolveRequest, SolveResult } from './contract';
 import { toProviderError } from './http';
 import { parsePattern } from './pattern';
+import { findClued } from './providers/crosswordese';
 import { datamuse } from './providers/datamuse';
 import { dictionaryapi } from './providers/dictionaryapi';
 import { buildLinks } from './providers/links';
 import { wikipedia } from './providers/wikipedia';
 import { wiktionary } from './providers/wiktionary';
-import { rankAnswers } from './rank';
+import { capAnswers, mergeAnswers, rankAnswers } from './rank';
 import { getCached, putCached } from './store';
 
 export interface BuildError {
@@ -54,10 +55,40 @@ async function fetchDefinition(req: SolveRequest, signal: AbortSignal, errors: P
   return null;
 }
 
+/**
+ * Answers come from two sources with very different characters. The bundled
+ * crosswordese corpus is local, so it resolves instantly and is painted on
+ * its own the moment there is anything to show; it knows convention ("old
+ * coin" wants SOU) but only for the short, recurring fill it covers.
+ * Datamuse knows association across the whole language but not convention,
+ * and it costs a round trip. Merging them means a Datamuse failure still
+ * leaves the local answers standing, which is why its rejection is recorded
+ * rather than propagated.
+ */
+async function fetchAnswers(
+  req: SolveRequest,
+  signal: AbortSignal,
+  errors: ProviderError[],
+  on: SolveEvents,
+): Promise<Answer[]> {
+  const local = findClued(req);
+  if (local.length) on.answers?.(capAnswers(local));
+  let remote: Answer[] = [];
+  try {
+    remote = await datamuse.fetch(req, signal);
+  } catch (e) {
+    errors.push(toProviderError(datamuse.name, e));
+  }
+  const merged = capAnswers(rankAnswers(mergeAnswers([...local, ...remote]), req));
+  on.answers?.(merged);
+  return merged;
+}
+
 export async function solve(req: SolveRequest, signal: AbortSignal, on: SolveEvents): Promise<SolveResult> {
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
   const cachedRaw = getCached(req, { allowStale: offline });
-  const cached = cachedRaw && { ...cachedRaw, request: req, answers: rankAnswers(cachedRaw.answers, req) };
+  const cached =
+    cachedRaw && { ...cachedRaw, request: req, answers: capAnswers(rankAnswers(mergeAnswers(cachedRaw.answers), req)) };
   if (cached) {
     on.answers?.(cached.answers);
     on.definition?.(cached.definition);
@@ -68,10 +99,7 @@ export async function solve(req: SolveRequest, signal: AbortSignal, on: SolveEve
 
   const errors: ProviderError[] = [];
   const [answers, definition, reference] = await Promise.all([
-    datamuse.fetch(req, signal).then(
-      (a) => (on.answers?.(a), a),
-      (e) => (errors.push(toProviderError(datamuse.name, e)), on.answers?.([]), [] as Answer[]),
-    ),
+    fetchAnswers(req, signal, errors, on),
     fetchDefinition(req, signal, errors).then((d) => (on.definition?.(d), d)),
     wikipedia.fetch(req, signal).then(
       (r) => (on.reference?.(r), r),
