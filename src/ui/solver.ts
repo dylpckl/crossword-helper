@@ -1,4 +1,4 @@
-import type { SolveResult, SolveRequest } from '../contract';
+import type { Answer, SolveResult, SolveRequest } from '../contract';
 import { parsePattern } from '../pattern';
 import { renderAnswers, skeletonAnswers } from '../render/answers';
 import { renderEmpty } from '../render/empty';
@@ -72,6 +72,13 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
 
   let ctl: AbortController | null = null;
   let current: SolveResult | null = null;
+  /**
+   * Answers as they stand before every provider has settled. Meaning waits on
+   * a dictionary that can take eight seconds to time out, so `current` is not
+   * set until well after the answers are on screen — and the length filter
+   * has to work in that gap, not sit dead until the slowest provider gives up.
+   */
+  let live: { req: SolveRequest; answers: Answer[] } | null = null;
   let liveTimer: number | undefined;
 
   /**
@@ -87,28 +94,52 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     const body = sections.meaning + sections.answers;
     out.innerHTML = body || renderEmpty(getHistory().length === 0);
   }
-  /** Swap one section in place, so the others keep their DOM and their state. */
-  function paintAnswers() {
-    const el = out.querySelector('#sec-answers');
-    if (el) el.outerHTML = sections.answers;
+  /**
+   * Swap one section in place. Rebuilding the whole of `out` for a change to
+   * one section throws away the other's DOM mid-interaction — a definition
+   * landing would tear out the answer list under the reader's thumb.
+   */
+  function paintSection(id: string, html: string) {
+    const el = out.querySelector(id);
+    if (el) el.outerHTML = html;
     else paint();
   }
-  /** Re-render every section from `current`. */
+  const paintAnswers = () => paintSection('#sec-answers', sections.answers);
+  const paintMeaningSection = () => paintSection('#sec-meaning', sections.meaning);
+  /** Re-render every section, in place. */
   function repaintAll() {
     if (!current) return;
-    const r = current, req = r.request;
     renderSections();
-    paint();
+    paintMeaningSection();
+    paintAnswers();
+  }
+  /**
+   * Hold the chosen length across a repaint, but drop it if the new answers
+   * have nothing of that length — a filter matching nothing reads as a bug.
+   */
+  function keepLengthFilter(answers: Answer[]): number | null {
+    if (lengthFilter !== null && !answers.some((a) => a.length === lengthFilter)) lengthFilter = null;
+    return lengthFilter;
+  }
+  /** Renders from the finished result when there is one, the partial otherwise. */
+  function renderAnswersSection() {
+    if (current) {
+      const r = current;
+      sections.answers = renderAnswers(r.answers, r.request, {
+        fromCache: r.fromCache,
+        error: r.errors.find((e) => e.provider === 'Datamuse'),
+        lengthFilter: keepLengthFilter(r.answers),
+      });
+    } else if (live) {
+      sections.answers = renderAnswers(live.answers, live.req, { lengthFilter: keepLengthFilter(live.answers) });
+    }
   }
   function renderSections() {
-    if (!current) return;
-    const r = current, req = r.request;
-    sections.meaning = renderMeaning(r.definition, r.reference, r.links, req.query, r.errors, { open: meaningOpen });
-    sections.answers = renderAnswers(r.answers, req, {
-      fromCache: r.fromCache,
-      error: r.errors.find((e) => e.provider === 'Datamuse'),
-      lengthFilter,
-    });
+    if (current) {
+      const r = current, req = r.request;
+      sections.meaning = renderMeaning(r.definition, r.reference, r.links, req.query, r.errors, { open: meaningOpen });
+    }
+    renderAnswersSection();
   }
 
   /** Toggling only flips a class, so the CSS height transition can run. */
@@ -131,6 +162,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl = null;
     clearTimeout(liveTimer);
     current = null;
+    live = null;
     lengthFilter = null;
     sections.meaning = '';
     sections.answers = '';
@@ -187,6 +219,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     const mine = ctl;
     lengthFilter = null;
     current = null;
+    live = null;
     sections.meaning = skeletonMeaning();
     sections.answers = skeletonAnswers();
     meaningOpen = false;
@@ -197,12 +230,17 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     let liveRef: Parameters<typeof renderMeaning>[1] = null;
     const paintMeaning = () => {
       sections.meaning = renderMeaning(liveDef, liveRef, buildLinks(req.query, liveRef !== null), req.query, [], { open: meaningOpen });
-      paint();
+      paintMeaningSection();
     };
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const result = await solve(req, mine.signal, {
-      answers: (a) => { if (mine.signal.aborted) return; sections.answers = renderAnswers(a, req); paint(); },
+      answers: (a) => {
+        if (mine.signal.aborted) return;
+        live = { req, answers: a };
+        renderAnswersSection();
+        paintAnswers();
+      },
       definition: (d) => {
         if (mine.signal.aborted) return;
         liveDef = d;
@@ -274,7 +312,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     if (len) {
       const n = Number(len.dataset.len);
       lengthFilter = n === 0 || lengthFilter === n ? null : n;
-      renderSections();
+      renderAnswersSection();
       withTransition(paintAnswers);
       return;
     }

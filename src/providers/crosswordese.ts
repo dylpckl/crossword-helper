@@ -78,6 +78,11 @@ export function findClued(req: SolveRequest): Answer[] {
       display: entry.a.toLowerCase(),
       length: entry.a.length,
       score: FLOOR + (1 - FLOOR) * best,
+      // An exact stock clue is evidence of the same kind as a clue-bank hit:
+      // this phrasing is the one setters use for this answer. A partial match
+      // is not, so it competes on score alone against Datamuse — otherwise
+      // every loose hit would outrank a good association.
+      priority: best === 1 ? 1 : 0,
       fitsPattern: null,
       gloss: entry.g,
       source: 'crosswordese',
