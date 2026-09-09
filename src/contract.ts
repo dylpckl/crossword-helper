@@ -58,7 +58,7 @@ export interface SolveRequest {
 // Answers (the crossword side)
 // ---------------------------------------------------------------------------
 
-export type AnswerSource = 'datamuse' | 'claude';
+export type AnswerSource = 'datamuse' | 'crosswordese' | 'claude';
 
 export interface Answer {
   /** Grid form: "RIPCURRENT". Used for pattern matching, dedupe, and tiles. */
@@ -88,7 +88,10 @@ export interface Answer {
    * Undefined when no letters were given.
    */
   letterHits?: number;
-  /** One-line "why": a short definition (Datamuse) or reasoning (Claude). */
+  /**
+   * One-line "why": a short definition (Datamuse), the stock gloss for a
+   * conventional answer (Crosswordese), or reasoning (Claude).
+   */
   gloss?: string;
   /** Datamuse tags: "n", "v", "adj", "adv", "prop" (proper noun). */
   partOfSpeech?: string[];

@@ -44,7 +44,11 @@ describe('solve', () => {
       reference: () => events.push('reference'),
       done: () => events.push('done'),
     });
-    expect(events.sort()).toEqual(['answers', 'definition', 'done', 'reference']);
+    // Answers paint twice: the local corpus lands instantly ("tide" reaches
+    // NEAP), then again once Datamuse has been merged in.
+    expect(events.filter((e) => e === 'answers')).toHaveLength(2);
+    expect(events[0]).toBe('answers');
+    expect([...new Set(events)].sort()).toEqual(['answers', 'definition', 'done', 'reference']);
     expect(r.answers[0]!.answer).toBe('EBB');
     expect(r.definition!.source).toBe('dictionaryapi');
     expect(r.reference!.title).toBe('Tide');

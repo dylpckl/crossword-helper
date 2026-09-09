@@ -17,9 +17,9 @@ export const NAME = 'Datamuse';
 
 export function buildUrls(req: SolveRequest): string[] {
   const ml = encodeURIComponent(req.query);
-  const urls = [`${BASE}?ml=${ml}&md=dpf&max=60`];
+  const urls = [`${BASE}?ml=${ml}&md=dpf&max=200`];
   const sp = toDatamuseSp(req);
-  if (sp) urls.push(`${BASE}?ml=${ml}&sp=${encodeURIComponent(sp)}&md=dpf&max=30`);
+  if (sp) urls.push(`${BASE}?ml=${ml}&sp=${encodeURIComponent(sp)}&md=dpf&max=60`);
   return urls;
 }
 
@@ -47,7 +47,10 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
     const prev = seen.get(answer);
     if (!prev || candidate.score > prev.score) seen.set(answer, { ...candidate, gloss: candidate.gloss ?? prev?.gloss });
   }
-  return rankAnswers([...seen.values()], req).slice(0, 24);
+  // A generous provider-level guard only. The orchestrator merges this with
+  // the local corpus and applies the display cap, so trimming hard here
+  // would throw away short fill before the length filter ever sees it.
+  return rankAnswers([...seen.values()], req).slice(0, 120);
 }
 
 export const datamuse: AnswerProvider = {

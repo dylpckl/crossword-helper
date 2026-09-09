@@ -4,7 +4,7 @@ import { buildUrls, mapAnswers } from '../../src/providers/datamuse';
 
 describe('datamuse', () => {
   it('builds one url unconstrained and two with a pattern', () => {
-    expect(buildUrls({ query: 'ocean current' })).toEqual(['https://api.datamuse.com/words?ml=ocean%20current&md=dpf&max=60']);
+    expect(buildUrls({ query: 'ocean current' })).toEqual(['https://api.datamuse.com/words?ml=ocean%20current&md=dpf&max=200']);
     const urls = buildUrls({ query: 'tide', pattern: 'E??', length: 3 });
     expect(urls).toHaveLength(2);
     expect(urls[1]).toContain('sp=e%3F%3F');
@@ -33,8 +33,13 @@ describe('datamuse', () => {
     expect(a.every((x) => x.fitsPattern === null)).toBe(true);
   });
 
-  it('caps at 24', () => {
+  it('keeps a deep pool, since the orchestrator applies the display cap', () => {
     const many = Array.from({ length: 40 }, (_, i) => ({ word: `w${i}x`.replace(/\d/g, (d) => 'abcdefghij'[+d]!), score: 40 - i }));
-    expect(mapAnswers(many, { query: 'x' })).toHaveLength(24);
+    expect(mapAnswers(many, { query: 'x' })).toHaveLength(40);
+  });
+
+  it('still guards against a runaway response', () => {
+    const many = Array.from({ length: 300 }, (_, i) => ({ word: `q${i}`.replace(/\d/g, (d) => 'abcdefghij'[+d]!), score: 300 - i }));
+    expect(mapAnswers(many, { query: 'x' }).length).toBeLessThanOrEqual(120);
   });
 });
