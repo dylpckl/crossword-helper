@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import datamuseRows from './fixtures/datamuse-tide.json';
 import dictEntries from './fixtures/dictionaryapi-tide.json';
 import wikiSummary from './fixtures/wikipedia-tide.json';
+import { setClueBank } from '../src/providers/cluebank';
 import { buildRequest, isBuildError, solve } from '../src/solve';
 import { getCached } from '../src/store';
 
@@ -24,7 +25,12 @@ describe('buildRequest', () => {
 });
 
 describe('solve', () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    // Pin the bank empty so these tests exercise corpus + network merging
+    // regardless of what the generated cluebank.json currently holds.
+    setClueBank({});
+  });
 
   it('fans out, assembles a SolveResult, and caches it', async () => {
     const fetchMock = vi.fn(async (input: string | URL | Request) => {
