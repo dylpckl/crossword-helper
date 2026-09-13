@@ -10,3 +10,12 @@ export function buildLinks(query: string, hasReference: boolean): SearchLink[] {
   if (!hasReference) links.push({ label: 'Wikipedia', url: `https://en.wikipedia.org/w/index.php?search=${q}` });
   return links;
 }
+
+/**
+ * The search the user would otherwise type by hand. Carrying the selected
+ * length makes it the search they would type *after* the first one failed.
+ */
+export function googleClueUrl(query: string, length?: number | null): string {
+  const q = `${query} crossword clue${length ? ` ${length} letters` : ''}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}

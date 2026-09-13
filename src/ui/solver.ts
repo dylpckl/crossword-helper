@@ -91,7 +91,8 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let lengthFilter: number | null = null;
 
   function paint() {
-    const body = sections.meaning + sections.answers;
+    // Answers lead: they are what the search was for. Meaning follows.
+    const body = sections.answers + sections.meaning;
     out.innerHTML = body || renderEmpty(getHistory().length === 0);
   }
   /**

@@ -13,6 +13,14 @@ export interface DatamuseWord {
 const BASE = 'https://api.datamuse.com/words';
 /** Datamuse mixes internal markers (f:1.2, results_type:…) into tags; only these are parts of speech. */
 const POS_TAGS = new Set(['n', 'v', 'adj', 'adv', 'prop', 'u']);
+/**
+ * Datamuse's own admission of defeat. When it has no real associations for a
+ * query it pads the response with words whose dictionary text merely contains
+ * the query, and tags them so. For "sawbuck" that produced SCAW, "(Cornwall)
+ * an elder tree" — shown as an answer, that reads as the app being broken.
+ * An empty list is more honest than a padded one.
+ */
+const BACKFILL = /^results_type:backfill/;
 export const NAME = 'Datamuse';
 
 export function buildUrls(req: SolveRequest): string[] {
@@ -29,6 +37,7 @@ export function mapAnswers(rows: DatamuseWord[], req: SolveRequest): Answer[] {
   const seen = new Map<string, Answer>();
   for (const r of rows) {
     if (!r.word) continue;
+    if (r.tags?.some((t) => BACKFILL.test(t))) continue;
     const answer = toGrid(r.word);
     if (!answer) continue;
     const tags = (r.tags ?? []).filter((t) => POS_TAGS.has(t));
