@@ -3,11 +3,12 @@ import type { Answer } from '../../src/contract';
 import { lengthCounts, renderAnswers } from '../../src/render/answers';
 import { renderMeaning } from '../../src/render/meaning';
 
-const make = (display: string, score = 1): Answer => {
+const make = (display: string, score = 1, priority = 0): Answer => {
   const answer = display.toUpperCase().replace(/[^A-Z]/g, '');
-  return { answer, display, length: answer.length, score, fitsPattern: null, source: 'datamuse' };
+  return { answer, display, length: answer.length, score, priority, fitsPattern: null, source: priority ? 'cluebank' : 'datamuse' };
 };
-const ANSWERS = [make('seer'), make('ezra'), make('nahum'), make('samuel'), make('soothsayer')];
+/** Two published answers, three associations. */
+const ANSWERS = [make('seer', 1, 1), make('ezra', 1, 1), make('nahum'), make('samuel'), make('soothsayer')];
 
 describe('length chips', () => {
   it('counts only the lengths present, ascending', () => {
@@ -28,7 +29,8 @@ describe('length chips', () => {
 
   it('filters the list and updates the count when a length is picked', () => {
     const html = renderAnswers(ANSWERS, { query: 'x' }, { lengthFilter: 4 });
-    expect(html).toContain('2 of 5');
+    // The count is of published answers: both four-letter ones are.
+    expect(html).toContain('2 of 2');
     expect(html).toContain('data-answer="SEER"');
     expect(html).toContain('data-answer="EZRA"');
     expect(html).not.toContain('data-answer="NAHUM"');
@@ -49,6 +51,56 @@ describe('length chips', () => {
 
   it('labels the row so two numbers are never left to speak for themselves', () => {
     expect(renderAnswers(ANSWERS, { query: 'x' })).toContain('class="lenlabel">Length');
+  });
+});
+
+describe('answers versus related words', () => {
+  it('shows published answers under Answers and associations under their own heading', () => {
+    const html = renderAnswers(ANSWERS, { query: 'prophet' });
+    const answers = html.indexOf('data-answer="SEER"');
+    const subhead = html.indexOf('class="subhead">Related words');
+    const related = html.indexOf('data-answer="NAHUM"');
+    expect(answers).toBeGreaterThan(-1);
+    expect(subhead).toBeGreaterThan(answers);
+    expect(related).toBeGreaterThan(subhead);
+    expect(html).toContain('Related words <span class="count">3</span>');
+  });
+
+  it('counts only published answers in the heading', () => {
+    expect(renderAnswers(ANSWERS, { query: 'prophet' })).toContain('<span class="count">2</span>');
+  });
+
+  it('never presents an association as an answer', () => {
+    const html = renderAnswers([make('gods'), make('deity')], { query: 'false god' });
+    expect(html).not.toMatch(/<h2>Answers <span class="count">/);
+    expect(html).toContain('Related words');
+  });
+
+  it('offers the search the reader would have typed when nothing is published', () => {
+    const html = renderAnswers([make('gods')], { query: 'false god' });
+    expect(html).toContain('No published answer for <b>false god</b> yet.');
+    expect(html).toContain('Google “false god crossword”');
+    expect(html).toContain('href="https://www.google.com/search?q=false%20god%20crossword%20clue"');
+    // The hand-off sits where the answers would be, above the associations.
+    expect(html.indexOf('class="handoff"')).toBeLessThan(html.indexOf('Related words'));
+  });
+
+  it('carries the selected length into the hand-off', () => {
+    const html = renderAnswers([make('gods'), make('deity')], { query: 'false god' }, { lengthFilter: 4 });
+    expect(html).toContain('Google “false god crossword, 4 letters”');
+    expect(html).toContain('false%20god%20crossword%20clue%204%20letters');
+  });
+
+  it('hands off even when there is nothing at all, so the page is never a dead end', () => {
+    const html = renderAnswers([], { query: 'sawbuck' });
+    expect(html).toContain('class="handoff-btn"');
+    expect(html).not.toContain('Related words');
+  });
+
+  it('keeps the provider error visible alongside the hand-off', () => {
+    const html = renderAnswers([], { query: 'sawbuck' }, { error: { provider: 'Datamuse', kind: 'http', message: 'Datamuse returned 503', status: 503 } });
+    expect(html).toContain('Datamuse returned 503');
+    expect(html).toContain('class="handoff-btn"');
   });
 });
 

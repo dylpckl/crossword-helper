@@ -58,7 +58,7 @@ export interface SolveRequest {
 // Answers (the crossword side)
 // ---------------------------------------------------------------------------
 
-export type AnswerSource = 'datamuse' | 'crosswordese' | 'claude';
+export type AnswerSource = 'datamuse' | 'crosswordese' | 'cluebank' | 'claude';
 
 export interface Answer {
   /** Grid form: "RIPCURRENT". Used for pattern matching, dedupe, and tiles. */
@@ -77,6 +77,14 @@ export interface Answer {
   score: number;
   /** The provider's raw score, for display. Datamuse: the unscaled integer. */
   rawScore?: number;
+  /**
+   * Tier of evidence, sorted before `score` and defaulting to 0. It exists
+   * because `score` is only comparable within one provider: Datamuse's best
+   * association always normalizes to 1, which says nothing about whether it
+   * beats an answer a published puzzle actually used for this exact clue.
+   * Raise it only for evidence of that kind — the clue bank sets 1.
+   */
+  priority?: number;
   /**
    * true  → matches `SolveRequest.pattern`/`length`
    * false → does not match (UI dims it, sorts it last)

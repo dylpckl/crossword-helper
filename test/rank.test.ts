@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Answer } from '../src/contract';
-import { capAnswers, mergeAnswers } from '../src/rank';
+import { capAnswers, mergeAnswers, rankAnswers } from '../src/rank';
 
 const answer = (over: Partial<Answer> & { answer: string }): Answer => ({
   display: over.answer.toLowerCase(),
@@ -81,5 +81,40 @@ describe('capAnswers', () => {
   it('preserves rank order in the head', () => {
     const ranked = [answer({ answer: 'AAA', score: 1 }), answer({ answer: 'BBB', score: 0.5 })];
     expect(capAnswers(ranked).map((a) => a.answer)).toEqual(['AAA', 'BBB']);
+  });
+});
+
+describe('priority', () => {
+  it('lifts a published answer above a better-scoring association', () => {
+    // Datamuse's top always normalizes to 1, which says nothing about whether
+    // it beats an answer a real puzzle used for this exact clue.
+    const ranked = rankAnswers(
+      [
+        answer({ answer: 'GODS', source: 'datamuse', score: 1 }),
+        answer({ answer: 'IDOL', source: 'cluebank', score: 0.9, priority: 1 }),
+      ],
+      { query: 'false god' },
+    );
+    expect(ranked[0]!.answer).toBe('IDOL');
+  });
+
+  it('still respects a pattern fit over evidence tier', () => {
+    const ranked = rankAnswers(
+      [
+        answer({ answer: 'IDOL', source: 'cluebank', score: 1, priority: 1 }),
+        answer({ answer: 'GODS', source: 'datamuse', score: 0.2 }),
+      ],
+      { query: 'false god', pattern: 'G??S', length: 4 },
+    );
+    expect(ranked[0]!.answer).toBe('GODS');
+  });
+
+  it('keeps the higher tier when two sources agree on an answer', () => {
+    const merged = mergeAnswers([
+      answer({ answer: 'IDOL', source: 'cluebank', score: 0.9, priority: 1 }),
+      answer({ answer: 'IDOL', source: 'datamuse', score: 1, gloss: 'an image of a god' }),
+    ]);
+    expect(merged[0]!.priority).toBe(1);
+    expect(merged[0]!.gloss).toBe('an image of a god');
   });
 });

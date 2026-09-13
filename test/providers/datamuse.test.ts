@@ -19,6 +19,15 @@ describe('datamuse', () => {
     expect(a[3]!.gloss).toBeUndefined();
   });
 
+  it("drops the rows Datamuse itself tags as padding", () => {
+    // The fixture carries SCAW, "(Cornwall) an elder tree", tagged backfill_gloss —
+    // Datamuse's way of saying it found nothing and is filling space.
+    const a = mapAnswers(rows, { query: 'tide' });
+    expect(a.map((x) => x.answer)).not.toContain('SCAW');
+    // A real primary result keeps its place and still has its internal tag stripped.
+    expect(a.find((x) => x.answer === 'FLOW')!.partOfSpeech).toEqual(['n', 'v']);
+  });
+
   it('marks and sorts by pattern fit', () => {
     const a = mapAnswers(rows, { query: 'tide', pattern: '?L??', length: 4 });
     expect(a[0]).toMatchObject({ answer: 'FLOW', fitsPattern: true });

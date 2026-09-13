@@ -1,6 +1,7 @@
 import type { Answer, Definition, ProviderError, Reference, SolveRequest, SolveResult } from './contract';
 import { toProviderError } from './http';
 import { parsePattern } from './pattern';
+import { findPublished } from './providers/cluebank';
 import { findClued } from './providers/crosswordese';
 import { datamuse } from './providers/datamuse';
 import { dictionaryapi } from './providers/dictionaryapi';
@@ -56,13 +57,18 @@ async function fetchDefinition(req: SolveRequest, signal: AbortSignal, errors: P
 }
 
 /**
- * Answers come from two sources with very different characters. The bundled
- * crosswordese corpus is local, so it resolves instantly and is painted on
- * its own the moment there is anything to show; it knows convention ("old
- * coin" wants SOU) but only for the short, recurring fill it covers.
- * Datamuse knows association across the whole language but not convention,
- * and it costs a round trip. Merging them means a Datamuse failure still
- * leaves the local answers standing, which is why its rejection is recorded
+ * Three sources, in descending order of how much they actually know about
+ * the clue in front of them.
+ *
+ * The clue bank is a record of what published puzzles have used for this
+ * exact clue, which is as close to an answer as the app gets; it is local
+ * but lazily loaded, so it lands a beat after the corpus. The crosswordese
+ * corpus knows convention for the short recurring fill, and is instant.
+ * Datamuse knows association across the whole language but nothing about
+ * convention, and costs a round trip.
+ *
+ * They are merged rather than raced, so a Datamuse failure still leaves the
+ * local answers standing — which is why its rejection is recorded here
  * rather than propagated.
  */
 async function fetchAnswers(
@@ -73,13 +79,19 @@ async function fetchAnswers(
 ): Promise<Answer[]> {
   const local = findClued(req);
   if (local.length) on.answers?.(capAnswers(local));
+
+  // The bank resolves off disk, so it is worth painting again before the
+  // network answers arrive rather than making the reader wait for Datamuse.
+  const published = await findPublished(req);
+  if (published.length) on.answers?.(capAnswers(rankAnswers(mergeAnswers([...published, ...local]), req)));
+
   let remote: Answer[] = [];
   try {
     remote = await datamuse.fetch(req, signal);
   } catch (e) {
     errors.push(toProviderError(datamuse.name, e));
   }
-  const merged = capAnswers(rankAnswers(mergeAnswers([...local, ...remote]), req));
+  const merged = capAnswers(rankAnswers(mergeAnswers([...published, ...local, ...remote]), req));
   on.answers?.(merged);
   return merged;
 }
