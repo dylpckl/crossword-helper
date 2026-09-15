@@ -104,6 +104,31 @@ describe('answers versus related words', () => {
   });
 });
 
+describe('spoiler mode', () => {
+  it('keeps everything below the heading behind a tap', () => {
+    const html = renderAnswers(ANSWERS, { query: 'prophet' }, { hidden: true });
+    expect(html).toContain('data-reveal-answers');
+    expect(html).toContain('Reveal 2 answers');
+    expect(html).not.toContain('data-answer=');
+    expect(html).not.toContain('class="lensbar"');
+    expect(html).not.toContain('Related words');
+  });
+
+  it('still shows the count in the heading, which is a hint but not a spoiler', () => {
+    expect(renderAnswers(ANSWERS, { query: 'prophet' }, { hidden: true })).toContain('<span class="count">2</span>');
+  });
+
+  it('names related words honestly when that is all there is to reveal', () => {
+    expect(renderAnswers([make('gods')], { query: 'x' }, { hidden: true })).toContain('Reveal 1 related word<');
+  });
+
+  it('has nothing to hide when there are no answers, so the hand-off shows as normal', () => {
+    const html = renderAnswers([], { query: 'sawbuck' }, { hidden: true });
+    expect(html).not.toContain('data-reveal-answers');
+    expect(html).toContain('class="handoff-btn"');
+  });
+});
+
 describe('meaning disclosure', () => {
   const LINKS = [{ label: 'Google', url: 'https://example.com' }];
   const REF = {
@@ -152,11 +177,20 @@ describe('meaning disclosure', () => {
     expect(html).toContain('Tides are the rise and fall of sea levels.');
   });
 
-  it('offers no control when neither source has anything, but still links out', () => {
+  it('stays one collapsed line when neither source has anything, with the links behind it', () => {
+    // Meaning sits above the answers, so an empty result must cost no more
+    // screen than a full one does when closed.
     const html = renderMeaning(null, null, LINKS, 'out of the country');
-    expect(html).not.toContain('data-toggle-meaning');
+    expect(html).toContain('data-toggle-meaning');
+    expect(html).toContain('class="peek"');
     expect(html).toContain('No dictionary entry');
-    expect(html).toContain('Search elsewhere');
+    expect(html.indexOf('Search elsewhere')).toBeGreaterThan(html.indexOf('bodywrap'));
+  });
+
+  it('surfaces a provider error as the collapsed line', () => {
+    const html = renderMeaning(null, null, LINKS, 'x', [{ provider: 'Free Dictionary', kind: 'timeout', message: 'Free Dictionary took longer than 8s' }]);
+    expect(html).toContain('class="peek bad"');
+    expect(html).toContain('took longer than 8s');
   });
 
   it('keeps the links inside the disclosure', () => {

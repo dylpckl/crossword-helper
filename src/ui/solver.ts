@@ -89,10 +89,14 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   let meaningOpen = false;
   /** Length segment selection. View-only, reset on each new search. */
   let lengthFilter: number | null = null;
+  /** Spoiler mode: whether this search's answers have been tapped open. */
+  let revealed = false;
 
   function paint() {
-    // Answers lead: they are what the search was for. Meaning follows.
-    const body = sections.answers + sections.meaning;
+    // Meaning first: collapsed, it is one line, so answers still start at the
+    // top of the screen — and it never has to be scrolled past a long list to
+    // be found. Spoiler mode builds on the same order.
+    const body = sections.meaning + sections.answers;
     out.innerHTML = body || renderEmpty(getHistory().length === 0);
   }
   /**
@@ -124,15 +128,17 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
   }
   /** Renders from the finished result when there is one, the partial otherwise. */
   function renderAnswersSection() {
+    const hidden = getSettings().hideAnswers && !revealed;
     if (current) {
       const r = current;
       sections.answers = renderAnswers(r.answers, r.request, {
         fromCache: r.fromCache,
         error: r.errors.find((e) => e.provider === 'Datamuse'),
         lengthFilter: keepLengthFilter(r.answers),
+        hidden,
       });
     } else if (live) {
-      sections.answers = renderAnswers(live.answers, live.req, { lengthFilter: keepLengthFilter(live.answers) });
+      sections.answers = renderAnswers(live.answers, live.req, { lengthFilter: keepLengthFilter(live.answers), hidden });
     }
   }
   function renderSections() {
@@ -165,6 +171,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     current = null;
     live = null;
     lengthFilter = null;
+    revealed = false;
     sections.meaning = '';
     sections.answers = '';
     formError.hidden = true;
@@ -219,6 +226,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
     ctl = new AbortController();
     const mine = ctl;
     lengthFilter = null;
+    revealed = false;
     current = null;
     live = null;
     sections.meaning = skeletonMeaning();
@@ -309,6 +317,7 @@ export function mountSolver(view: HTMLElement, shell: Shell): Solver {
       return;
     }
     if (t.closest('[data-toggle-meaning]')) { toggleMeaning(); return; }
+    if (t.closest('[data-reveal-answers]')) { revealed = true; renderAnswersSection(); withTransition(paintAnswers); return; }
     const len = t.closest<HTMLElement>('[data-len]');
     if (len) {
       const n = Number(len.dataset.len);

@@ -35,13 +35,18 @@ export function renderMeaning(
   errors: ProviderError[] = [],
   opts: MeaningOpts = {},
 ): string {
+  const open = opts.open === true;
   if (!d && !r) {
-    // Nothing to disclose, so no control — but the links still need a home.
+    // Nothing to define, but the section keeps the same shape: one line
+    // collapsed, the links behind it. Meaning sits above the answers, so it
+    // has to cost the same single line whether or not a definition came back.
     const err = errors.find((e) => e.provider === 'Free Dictionary' || e.provider === 'Wiktionary');
     const msg = err ? `${esc(err.message)}.` : `No dictionary entry for “${esc(query)}”. Phrases often don't have one.`;
-    return `<section class="section meaning" id="sec-meaning"><h2>Meaning</h2><div class="muted${err ? ' notice bad' : ''}">${msg}</div>${linkRow(links)}</section>`;
+    return `<section class="section meaning${open ? ' open' : ''}" id="sec-meaning">
+    <h2><button type="button" class="disclosure" data-toggle-meaning aria-expanded="${open}" aria-controls="meaning-body">Meaning${CHEVRON}</button></h2>
+    <div class="peekwrap"><div class="inner"><button type="button" class="peek${err ? ' bad' : ''}" data-toggle-meaning tabindex="${open ? -1 : 0}">${msg}</button></div></div>
+    <div class="bodywrap" id="meaning-body"><div class="inner"><div class="panel">${linkRow(links)}</div></div></div></section>`;
   }
-  const open = opts.open === true;
   return `<section class="section meaning${open ? ' open' : ''}" id="sec-meaning">
     <h2><button type="button" class="disclosure" data-toggle-meaning aria-expanded="${open}" aria-controls="meaning-body">Meaning${
       r?.kind === 'disambiguation' ? '<span class="pill">Several meanings</span>' : ''

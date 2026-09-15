@@ -70,8 +70,13 @@ export interface Settings {
   liveSearch: boolean;
   /** Where the search box sits: under the app bar, or docked in thumb reach. */
   searchPosition: SearchPosition;
+  /**
+   * Spoiler mode: keep the answers behind a tap so a lookup can be read for
+   * its meaning first. Off by default — answers are what most searches want.
+   */
+  hideAnswers: boolean;
 }
-export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false, searchPosition: 'top' };
+export const DEFAULT_SETTINGS: Settings = { theme: 'system', liveSearch: false, searchPosition: 'top', hideAnswers: false };
 export function getSettings(): Settings {
   return { ...DEFAULT_SETTINGS, ...read<Partial<Settings>>(SETTINGS_KEY, {}) };
 }
