@@ -16,6 +16,12 @@ export interface AnswersOpts {
    * fetched, so it costs no request; a length with no answers is ignored.
    */
   lengthFilter?: number | null;
+  /**
+   * Spoiler mode: keep everything below the heading behind a tap. Lengths
+   * are hints too, so the filter row hides with the rows. Nothing to hide
+   * (no answers at all) renders as normal — a hand-off is not a spoiler.
+   */
+  hidden?: boolean;
 }
 
 /** Lengths present in the answers, ascending, with how many of each. */
@@ -43,6 +49,13 @@ export function renderAnswers(answers: Answer[], req: SolveRequest, opts: Answer
 
   const label = active ? `${published.length} of ${allPublished.length}` : countLabel(allPublished, req);
   const head = `<h2>Answers ${allPublished.length ? `<span class="count">${label}</span>` : ''}${opts.fromCache ? '<span class="pill">Cached</span>' : ''}</h2>`;
+
+  if (opts.hidden && answers.length) {
+    const n = allPublished.length || answers.length;
+    return `<section class="section" id="sec-answers">${head}<div class="spoiler">
+      <button type="button" class="reveal-btn" data-reveal-answers>Reveal ${n} ${allPublished.length ? 'answer' : 'related word'}${n === 1 ? '' : 's'}</button>
+    </div></section>`;
+  }
 
   // One length is no choice, so the row only earns its space with two or more.
   // Counts live in the label rather than on screen: two bare numbers side by

@@ -35,6 +35,8 @@ export function mountSheet(shell: Shell, onChange: () => void) {
           .join('')}</div></div>
       <div class="setting"><div class="text"><div class="label">Search as you type</div><div class="sub">Solves after a short pause. Uses more of the free quota.</div></div>
         <button class="switch" role="switch" aria-checked="${s.liveSearch}" data-key="liveSearch" aria-label="Search as you type"></button></div>
+      <div class="setting"><div class="text"><div class="label">Hide answers</div><div class="sub">Read the meaning first; tap to reveal the answers.</div></div>
+        <button class="switch" role="switch" aria-checked="${s.hideAnswers}" data-key="hideAnswers" aria-label="Hide answers until revealed"></button></div>
       <div class="setting"><div class="text"><div class="label">Recent searches</div><div class="sub">Stored only on this device.</div></div>
         <button class="btn danger" data-action="clearHistory">Clear</button></div>
       <div class="setting"><div class="text"><div class="label">Cached results</div><div class="sub">Lets past lookups work offline.</div></div>
@@ -42,7 +44,7 @@ export function mountSheet(shell: Shell, onChange: () => void) {
 
       <div class="sheet-about">
         <div class="name">Crosscheck</div>
-        <p>Type a word or phrase. It gets solved as a crossword clue and defined as a word, in one go. Tap the Meaning header to open or close the definition. Add letters you already have to rank the answers that contain them, or a pattern like <code>SC?D?</code> to match by position.</p>
+        <p>Type a word or phrase. It gets solved as a crossword clue and defined as a word, in one go. Tap the Meaning header to open or close the definition, or turn on Hide answers to read the meaning before seeing them. Add letters you already have to rank the answers that contain them, or a pattern like <code>SC?D?</code> to match by position.</p>
         <p>Answers from Datamuse. Definitions from the Free Dictionary API and Wiktionary. Summaries from Wikipedia. All free, no account, and nothing you type is sent anywhere else.</p>
         <div class="chips">
           <a href="${REPO_URL}" target="_blank" rel="noopener">${GITHUB_ICON}GitHub</a>
@@ -62,6 +64,7 @@ export function mountSheet(shell: Shell, onChange: () => void) {
     if (t.dataset.theme) { applyTheme(saveSettings({ theme: t.dataset.theme as Theme }).theme); render(); }
     else if (t.dataset.pos) { saveSettings({ searchPosition: t.dataset.pos as SearchPosition }); render(); onChange(); }
     else if (t.dataset.key === 'liveSearch') { saveSettings({ liveSearch: !getSettings().liveSearch }); render(); onChange(); }
+    else if (t.dataset.key === 'hideAnswers') { saveSettings({ hideAnswers: !getSettings().hideAnswers }); render(); onChange(); }
     else if (t.dataset.action === 'clearHistory') { clearHistory(); onChange(); shell.toast('Recent searches cleared'); }
     else if (t.dataset.action === 'clearCache') { clearCache(); shell.toast('Cached results cleared'); }
     else if (t.dataset.action === 'diagnostics') { shell.openSheet(false); shell.show('diagnostics'); }
